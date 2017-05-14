@@ -1,0 +1,42 @@
+defmodule Bibliotheca.Api.UserController do
+  use Bibliotheca.Web, :controller
+
+  alias Bibliotheca.User
+
+  @user_not_found "User Not Found"
+
+  plug :scrub_params, "user" when action in [:create, :update]
+
+  def index(conn, _param), do:
+    render conn, :index, users: User.all
+
+  def create(conn, %{"user" => user_params}), do:
+    show_user(conn, User.create(user_params))
+
+  def show conn, %{"id" => id} do
+    case User.find id do
+      nil  -> user_not_found(conn)
+      user -> render conn, :show, user: user
+    end
+  end
+
+  def update(conn, %{"id" => id, "user" => user_params}), do:
+    show_user(conn, User.update(id, user_params))
+
+  def delete(conn, %{"id" => id}), do:
+    show_user(conn, User.delete(id))
+
+  defp show_user conn, ret_param do
+    case ret_param do
+      {:ok, user}         -> render conn, :show, user: user
+      {:error, changeset} -> json conn, changeset.errors
+      nil                 -> user_not_found(conn)
+    end
+  end
+
+  defp user_not_found(conn) do
+    conn
+    |> put_status(:not_found)
+    |> json(%{ error: @user_not_found })
+  end
+end
