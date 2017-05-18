@@ -35,7 +35,12 @@ defmodule Bibliotheca.Router do
      resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
 
      scope "/books" do
-
+       get "/", BookController, :index
+       post "/", BookController, :create
+       get "/:id", BookController, :show
+       get "/lend/:book_id", BookController, :lend
+       delete "/back/:book_id", BookController, :back
+       delete "/:id", BookController, :remove
      end
    end
 end

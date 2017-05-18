@@ -35,12 +35,16 @@ defmodule Bibliotheca.BookRemoved do
   end
 
   defp validate(:book_id, book_id) do
+    book_query =
+      from b in Book,
+        left_join: br in BookRemoved, on: b.id == br.book_id,
+        where: b.id == ^book_id and is_nil(br.id)
     query =
       from b in Book,
         inner_join: bl in BookLent, on: b.id == bl.book_id,
         left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
         where: is_nil(bb.id)
-    with book when not is_nil(book) <- Repo.get(Book, book_id),
+    with book when not is_nil(book) <- Repo.one(book_query),
          nil <- Repo.one(query)
     do
       []
