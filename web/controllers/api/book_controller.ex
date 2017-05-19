@@ -37,27 +37,28 @@ defmodule Bibliotheca.Api.BookController do
       {:error, changeset} ->
         conn
         |> put_status(400)
-        |> json(changeset.errors)
+        |> json(%{ errors: extract_errors(changeset)})
       nil -> book_not_found(conn)
     end
   end
 
   defp resp_no_contents(conn, ret) do
     case ret do
-      {:ok, _} ->
-        conn
-        |> put_status(204)
-        |> send_resp()
+      {:ok, _} -> send_resp(conn, 204, "")
       {:error, changeset} ->
         conn
         |> put_status(400)
-        |> json(changeset.errors)
+        |> json(%{ errors: extract_errors(changeset)})
     end
   end
 
+  defp extract_errors(changeset), do:
+    for {key, {message, details}} <- changeset.errors, do:
+      %{ key => %{ message: message, details: (for {key, value} <- details, do: %{ key => value }) } }
+
   defp book_not_found(conn) do
     conn
-    |> put_status(:not_found)
+    |> put_status(404)
     |> json(%{ error: @book_not_found })
   end
 end

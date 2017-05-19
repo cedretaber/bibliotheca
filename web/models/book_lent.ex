@@ -40,14 +40,15 @@ defmodule Bibliotheca.BookLent do
     )
 
   def lentable_book(book_id) do
-    query = from bl in __MODULE__,
-              left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
-              where: bl.book_id == ^book_id and is_nil(bb.id),
-              select: bl.id
+    query =
+      from bl in __MODULE__,
+        left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
+        where: bl.book_id == ^book_id and is_nil(bb.id),
+        select: bl.id
     with book when not is_nil(book) <- Book.find(book_id),
          nil <- Repo.one(query)
     do
-      {:ok, :book_id}
+      :ok
     else
       nil -> {:error, "Invalid book id."}
       _ -> {:error, "The book is already lent."}
@@ -60,20 +61,20 @@ defmodule Bibliotheca.BookLent do
         where: u.id == ^user_id
     case Repo.one(query) do
       nil -> {:error, "Invalid user id."}
-      _ -> {:ok, :user_id}
+      _ -> :ok
     end
   end
 
   defp validate(:book_id, book_id) do
     case lentable_book(book_id) do
-      {:ok, :book_id} -> []
+      :ok -> []
       {:error, msg} -> [book: msg]
     end
   end
 
   defp validate(:user_id, user_id) do
     case lentable_user(user_id) do
-      {:ok, :user_id} -> []
+      :ok -> []
       {:error, msg} -> [user: msg]
     end
   end

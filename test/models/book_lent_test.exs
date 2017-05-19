@@ -194,7 +194,7 @@ defmodule Bibliotheca.BookLentTest do
     test "book which nodoby has lent." do
       Repo.insert! @book
 
-      assert BookLent.lentable_book(@book.id) == {:ok, :book_id}
+      assert BookLent.lentable_book(@book.id) == :ok
     end
 
     test "book which has been lent." do
@@ -204,7 +204,7 @@ defmodule Bibliotheca.BookLentTest do
       {:ok, _} = BookLent.lend(@user.id, @book.id)
       {:ok, _} = BookLent.back(@user.id, @book.id)
 
-      assert BookLent.lentable_book(@book.id) == {:ok, :book_id}
+      assert BookLent.lentable_book(@book.id) == :ok
     end
 
     test "nonexistent book." do
@@ -223,7 +223,7 @@ defmodule Bibliotheca.BookLentTest do
     test "valid user." do
       Repo.insert! @user
 
-      assert BookLent.lentable_user(@user.id) == {:ok, :user_id}
+      assert BookLent.lentable_user(@user.id) == :ok
     end
 
     test "nonexistent user." do

@@ -53,19 +53,17 @@ defmodule Bibliotheca.ConnCase do
       Ecto.Adapters.SQL.Sandbox.mode(Bibliotheca.Repo, {:shared, self()})
     end
 
-    require Phoenix.ConnTest
+    Bibliotheca.Repo.insert! @user
+    header = Application.get_env :bibliotheca, :auth_header
+    token = Bibliotheca.Auth.HMAC.create_token()
+    Bibliotheca.Auth.Token.update_token @user, token
 
     conn =
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("accept", "application/json")
+      |> Plug.Conn.put_req_header(header, token)
+      |> Plug.Conn.assign(:current_user, @user)
 
-    header = Application.get_env :bibliotheca, :auth_header
-    Bibliotheca.Repo.insert! @user
-
-    token = Bibliotheca.Auth.HMAC.create_token()
-
-    Bibliotheca.Auth.Token.update_token @user, token
-
-    {:ok, conn: Plug.Conn.put_req_header(conn, header, token)}
+    {:ok, conn: conn}
   end
 end
