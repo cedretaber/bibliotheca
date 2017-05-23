@@ -1,26 +1,20 @@
 defmodule Bibliotheca.Api.AuthenticationController do
   use Bibliotheca.Web, :controller
 
-  import Ecto.Query
-
   alias Bibliotheca.User
-  alias Bibliotheca.Auth.Token
+  alias Bibliotheca.Auth.{HMAC, Token}
 
   def login(conn, %{"email" => email}) do
-    user = Repo.one from u in User, where: u.email == ^email
-    case user do
+    case Repo.get_by(User, email: email) do
       nil ->
-        login(conn, %{})
+        login(conn, nil)
       user ->
-        token =
-          :crypto.strong_rand_bytes(32)
-          |> Base.encode64
-          |> binary_part(0, 32)
+        token = HMAC.create_token()
 
         Token.update_token user, token
 
         conn
-        |> put_resp_header("bibliotheca-token", token)
+        |> put_resp_header(Application.get_env(:bibliotheca, :auth_header), token)
         |> send_resp(204, "")
     end
   end

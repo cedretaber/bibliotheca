@@ -1,7 +1,7 @@
 defmodule Bibliotheca.BookTest do
   use Bibliotheca.ModelCase
 
-  alias Bibliotheca.{Repo, Author, Book, BookRemoved}
+  alias Bibliotheca.{Repo, Author, Book, BookLent, BookRemoved, User}
 
   @valid_attrs %{title: "title",
                  authors: ["someone", "another one"],
@@ -127,6 +127,48 @@ defmodule Bibliotheca.BookTest do
       assert Book.search("number") == [book.(2), book.(3)]
       assert Book.search("number 3") == [book.(3)]
       assert Book.search("1234567890") == [book.(2)]
+    end
+  end
+
+  describe "remove" do
+    test "remove an existent book." do
+      book = %Book{id: 1, title: "book"}
+      Repo.insert! book
+
+      assert BookRemoved.removed_book?(book.id) == false
+
+      {:ok, _} = Book.remove(book.id)
+
+      assert BookRemoved.removed_book?(book.id) == true
+    end
+
+    test "remove a removed book." do
+      book = %Book{id: 1, title: "book"}
+      Repo.insert! book
+      {:ok, _} = Book.remove(book.id)
+
+      {:error, changeset} = Book.remove(book.id)
+
+      assert {:book, "Invalid book id."} in extract_errors(changeset)
+    end
+
+    test "remove a nonexistent book." do
+      {:error, changeset} = Book.remove(42)
+      assert {:book, "Invalid book id."} in extract_errors(changeset)
+    end
+
+    test "remove a book which was lent." do
+      book = %Book{id: 1, title: "book"}
+      Repo.insert! book
+
+      user = %User{id: 1, email: "user@example.com", password_digest: "password", auth_code: "NORMAL"}
+      Repo.insert! user
+
+      {:ok, _} = BookLent.lend(user.id, book.id)
+
+      {:error, changeset} = Book.remove(book.id)
+
+      assert {:book, "The Book is still lent."} in extract_errors(changeset)
     end
   end
 end

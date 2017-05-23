@@ -24,7 +24,6 @@ defmodule Bibliotheca.Book do
   """
   def changeset(params \\ %{}) do
     %Book{}
-    |> Repo.preload(:authors)
     |> cast(params, @fields)
     |> validate_required([:title])
     |> put_assoc(:authors, cast_authors(params["authors"] || params[:authors] || []))
@@ -53,18 +52,22 @@ defmodule Bibliotheca.Book do
         or like(b.publisher, ^k)
         or like(b.isbn, ^k),
       distinct: b.id,
+      preload: :authors,
       order_by: b.id
 
     Repo.all(q)
   end
 
+  def remove(book_id), do:
+    Repo.insert(BookRemoved.changeset(%{book_id: book_id}))
+
   defp present_books_query, do:
-    __MODULE__
-    |> join(:left, [b], r in BookRemoved, b.id == r.book_id)
-    |> where([b, r], is_nil(r.id))
-    |> order_by([b, r], asc: b.id)
-    |> preload(:authors)
-    |> select([b, r], b)
+    from b in __MODULE__,
+      left_join: r in BookRemoved, on: b.id == r.book_id,
+      where: is_nil(r.id),
+      order_by: [asc: b.id],
+      preload: [:authors],
+      select: b
 
   defp cast_authors(author_names), do:
     author_names

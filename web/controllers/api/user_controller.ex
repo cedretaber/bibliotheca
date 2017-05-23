@@ -29,7 +29,7 @@ defmodule Bibliotheca.Api.UserController do
   defp show_user conn, ret_param do
     case ret_param do
       {:ok, user}         -> render conn, :show, user: user
-      {:error, changeset} -> json conn, changeset.errors
+      {:error, changeset} -> conn |> put_status(400) |> json(changeset.errors)
       nil                 -> user_not_found(conn)
     end
   end

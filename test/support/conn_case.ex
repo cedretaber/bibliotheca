@@ -15,6 +15,15 @@ defmodule Bibliotheca.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  @user %Bibliotheca.User{id: 1,
+                          email: "test@example.com",
+                          password_digest: "hogehogefufgafuga",
+                          auth_code: "ADMIN",
+                          inserted_at: ~N[2015-04-01 12:00:00],
+                          updated_at: ~N[2015-04-01 12:00:00]}
+
+  def get_user(), do: @user
+
   using do
     quote do
       # Import conveniences for testing with connections
@@ -29,6 +38,11 @@ defmodule Bibliotheca.ConnCase do
 
       # The default endpoint for testing
       @endpoint Bibliotheca.Endpoint
+
+      @user Bibliotheca.ConnCase.get_user()
+
+      defp jsonise(data), do:
+        data |> Poison.encode!() |> Poison.decode!()
     end
   end
 
@@ -39,6 +53,17 @@ defmodule Bibliotheca.ConnCase do
       Ecto.Adapters.SQL.Sandbox.mode(Bibliotheca.Repo, {:shared, self()})
     end
 
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    Bibliotheca.Repo.insert! @user
+    header = Application.get_env :bibliotheca, :auth_header
+    token = Bibliotheca.Auth.HMAC.create_token()
+    Bibliotheca.Auth.Token.update_token @user, token
+
+    conn =
+      Phoenix.ConnTest.build_conn()
+      |> Plug.Conn.put_req_header("accept", "application/json")
+      |> Plug.Conn.put_req_header(header, token)
+      |> Plug.Conn.assign(:current_user, @user)
+
+    {:ok, conn: conn}
   end
 end

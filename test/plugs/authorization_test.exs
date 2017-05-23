@@ -4,39 +4,31 @@ defmodule Bibliotheca.Plugs.AuthorizationTest do
   import Bibliotheca.Plugs.Authorization
 
   alias Bibliotheca.User
-  alias Bibliotheca.Auth.Token
 
-  setup_all _context do
-    Token.init
+  @user1 @user
+  @user2 %User{ @user1 | email: "user2@example.com", auth_code: "NORMAL" }
 
-    user = %User{email: "test@example.com", password_digest: "hogehoge"}
-    token = "hogehogefugafuga"
+  test "access admin resources by admin user.", %{conn: conn} do
+    conn = authorize(conn, [:admin])
 
-    Token.update_token user, token
-
-    [user: user, token: token]
+    refute conn.halted
   end
 
-  test "access success when logged in", %{conn: conn, token: token, user: user} do
+  test "access admin resources by normal user.", %{conn: conn} do
     conn = conn
-      |> put_req_header(Application.get_env(:bibliotheca, :auth_header), token)
-      |> authorize(nil)
+      |> assign(:current_user, @user2)
+      |> authorize([:admin])
 
-    assert conn.assigns[:token] == token
-    assert conn.assigns[:current_user] == user
+    assert conn.halted
   end
 
-  test "access was refused when not logged in", %{conn: conn} do
-    conn = authorize(conn, nil)
+  test "access normal resources.", %{conn: conn} do
+    conn_admin = authorize(conn, [:normal])
+    refute conn_admin.halted
 
-    assert conn.status == 403
-  end
-
-  test "access was refused when another user logged in", %{conn: conn} do
-    conn = conn
-      |> put_req_header(Application.get_env(:bibliotheca, :auth_header), "no_such_token")
-      |> authorize(nil)
-
-    assert conn.status == 403
+    conn_normal = conn
+      |> assign(:current_user, @user2)
+      |> authorize([:normal])
+    refute conn_normal.halted
   end
 end
