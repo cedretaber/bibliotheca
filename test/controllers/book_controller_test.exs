@@ -234,13 +234,4 @@ defmodule Bibliotheca.BookControllerTest do
       assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
     end
   end
-
-  defp login_user(conn, user) do
-    token = Bibliotheca.Auth.HMAC.create_token()
-    Bibliotheca.Auth.Token.update_token user, token
-
-    conn
-    |> Plug.Conn.put_req_header(Application.get_env(:bibliotheca, :auth_header), token)
-    |> Plug.Conn.assign(:current_user, user)
-  end
 end

@@ -19,7 +19,7 @@ defmodule Bibliotheca.Plugs.AuthenticationTest do
       |> delete_req_header(@header)
       |> authenticate(nil)
 
-    assert conn.status == 403
+    assert conn.status == 401
   end
 
   test "access was refused when another user logged in", %{conn: conn} do
@@ -28,6 +28,6 @@ defmodule Bibliotheca.Plugs.AuthenticationTest do
       |> put_req_header(@header, no_such_token)
       |> authenticate(nil)
 
-    assert conn.status == 403
+    assert conn.status == 401
   end
 end

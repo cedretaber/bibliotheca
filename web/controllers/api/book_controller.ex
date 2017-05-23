@@ -1,6 +1,8 @@
 defmodule Bibliotheca.Api.BookController do
   use Bibliotheca.Web, :controller
 
+  import Bibliotheca.Helpers.ErrorExtractor
+
   alias Bibliotheca.{Book, BookLent}
 
   @book_not_found "Book Not Found"
@@ -51,10 +53,6 @@ defmodule Bibliotheca.Api.BookController do
         |> json(%{ errors: extract_errors(changeset)})
     end
   end
-
-  defp extract_errors(changeset), do:
-    for {key, {message, details}} <- changeset.errors, do:
-      %{ key => %{ message: message, details: (for {key, value} <- details, do: %{ key => value }) } }
 
   defp book_not_found(conn) do
     conn

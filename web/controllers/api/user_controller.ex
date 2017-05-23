@@ -1,6 +1,8 @@
 defmodule Bibliotheca.Api.UserController do
   use Bibliotheca.Web, :controller
 
+  import Bibliotheca.Helpers.ErrorExtractor
+
   alias Bibliotheca.User
 
   @user_not_found "User Not Found"
@@ -29,7 +31,7 @@ defmodule Bibliotheca.Api.UserController do
   defp show_user conn, ret_param do
     case ret_param do
       {:ok, user}         -> render conn, :show, user: user
-      {:error, changeset} -> conn |> put_status(400) |> json(changeset.errors)
+      {:error, changeset} -> conn |> put_status(400) |> json(%{ errors: extract_errors(changeset)})
       nil                 -> user_not_found(conn)
     end
   end
