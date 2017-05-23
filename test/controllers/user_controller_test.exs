@@ -53,7 +53,7 @@ defmodule Bibliotheca.UserControllerTest do
       assert new_user.auth_code == new_auth_code
     end
 
-    test "create a user who has a deplecated email.", %{conn: conn} do
+    test "create a user who has a duplicated email.", %{conn: conn} do
       new_password = "new_password"
       new_auth_code = "NORMAL"
 

@@ -61,8 +61,10 @@ defmodule Bibliotheca.User do
 
   def update_email id, email do
     case Repo.get __MODULE__, id do
-      nil  -> nil
-      user -> Repo.update changeset_email(user, %{ email: email })
+      nil  ->
+        nil
+      user ->
+        Repo.update changeset_email(user, %{ email: email })
     end
   end
 
