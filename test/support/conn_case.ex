@@ -63,6 +63,7 @@ defmodule Bibliotheca.ConnCase do
     end
 
     Bibliotheca.Repo.insert! @user
+    Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
     header = Application.get_env :bibliotheca, :auth_header
     token = Bibliotheca.Auth.HMAC.create_token()
     Bibliotheca.Auth.Token.update_token @user, token

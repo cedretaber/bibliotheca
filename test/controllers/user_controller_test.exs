@@ -42,6 +42,7 @@ defmodule Bibliotheca.UserControllerTest do
       new_auth_code = "NORMAL"
 
       create_param = %{ email: new_email, password: new_password, auth_code: new_auth_code }
+
       conn = post(conn, "/api/users/", %{ user: create_param })
 
       assert %{ "user" => %{ "id" => id, "email" => ^new_email, "authCode" => ^new_auth_code } } = json_response(conn, 200)
