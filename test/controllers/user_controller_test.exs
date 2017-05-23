@@ -35,7 +35,7 @@ defmodule Bibliotheca.UserControllerTest do
     end
   end
 
-  describe "update/2" do
+  describe "create/2" do
     test "create a user.", %{conn: conn} do
       new_email = "new_email@example.com"
       new_password = "new_password"
