@@ -21,4 +21,6 @@ defmodule Bibliotheca.Plugs.Authentication do
         |> halt()
     end
   end
+
+  def current_user(conn), do: conn.assigns[:current_user]
 end

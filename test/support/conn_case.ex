@@ -15,14 +15,16 @@ defmodule Bibliotheca.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  @password "hogehogefufgafuga"
   @user %Bibliotheca.User{id: 1,
                           email: "test@example.com",
-                          password_digest: "hogehogefufgafuga",
+                          password_digest: Bibliotheca.Auth.HMAC.hexdigest(@password),
                           auth_code: "ADMIN",
                           inserted_at: ~N[2015-04-01 12:00:00],
                           updated_at: ~N[2015-04-01 12:00:00]}
 
-  def get_user(), do: @user
+  def get_password, do: @password
+  def get_user, do: @user
 
   using do
     quote do
@@ -39,13 +41,14 @@ defmodule Bibliotheca.ConnCase do
       # The default endpoint for testing
       @endpoint Bibliotheca.Endpoint
 
+      @password Bibliotheca.ConnCase.get_password()
       @user Bibliotheca.ConnCase.get_user()
 
       defp jsonise(data), do:
         data |> Poison.encode!() |> Poison.decode!()
 
       defp login_user(conn, user) do
-        token = Bibliotheca.Auth.HMAC.create_token()
+        token = Bibliotheca.Auth.Token.create_token()
         Bibliotheca.Auth.Token.update_token user, token
 
         conn
@@ -64,8 +67,9 @@ defmodule Bibliotheca.ConnCase do
 
     Bibliotheca.Repo.insert! @user
     Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
+
     header = Application.get_env :bibliotheca, :auth_header
-    token = Bibliotheca.Auth.HMAC.create_token()
+    token = Bibliotheca.Auth.Token.create_token()
     Bibliotheca.Auth.Token.update_token @user, token
 
     conn =

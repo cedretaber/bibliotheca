@@ -24,4 +24,9 @@ defmodule Bibliotheca.Auth.Token do
 
   def delete_token(user_id), do:
     Agent.update(__MODULE__, &Map.delete(&1, user_id))
+
+  def create_token(), do:
+    :crypto.strong_rand_bytes(32)
+    |> Base.encode64
+    |> binary_part(0, 32)
 end
