@@ -78,9 +78,21 @@ defmodule Bibliotheca.UserTest do
 
       assert Repo.get_by(User, email: email) == nil
 
-      User.create user_param
+      assert {:ok, _} = User.create user_param
 
       assert Repo.get_by(User, email: email) != nil
+    end
+
+    test "when a email duplicated." do
+      email = "user@example.com"
+
+      user1 = %User{ id: 1, email: email, password_digest: "hogehoge", auth_code: "ADMIN" }
+      Repo.insert! user1
+
+      user_param = %{ "email" => email, "password" => "user", "auth_code" => "ADMIN" }
+
+      assert {:error, changeset} = User.create(user_param)
+      assert changeset.errors == [email: {"has already been taken", []}]
     end
   end
 
@@ -127,12 +139,13 @@ defmodule Bibliotheca.UserTest do
   describe "update" do
     test "update" do
       id = 42
+      now = ~N[2015-04-01 12:00:00.000000]
       user = %User{id: id,
                    email: "user@example.com",
                    password_digest: "hogehogefugafuga",
                    auth_code: "NORMAL",
-                   inserted_at: ~N[2015-04-01 12:00:00],
-                   updated_at: ~N[2015-04-01 12:00:00]}
+                   inserted_at: now,
+                   updated_at: now}
 
       Repo.insert! user
 
@@ -141,12 +154,27 @@ defmodule Bibliotheca.UserTest do
       auth_code = "ADMIN"
 
       update_param = %{ "email" => email, "password" => password, "auth_code" => auth_code }
-      User.update(id, update_param)
+      assert {:ok, _} = User.update(id, update_param)
 
       user = Repo.get!(User, id)
       assert user.email == email
       assert user.password_digest == HMAC.hexdigest(password)
       assert user.auth_code == auth_code
+      assert user.inserted_at == now
+      refute user.updated_at == now
+    end
+
+    test "update when the email duplicated." do
+      user1 = %User{id: 1, email: "user@example.com", password_digest: "hogehogefugafuga", auth_code: "NORMAL",}
+      Repo.insert! user1
+
+      user2 = %User{ user1 | id: 2, email: "user2@example.com" }
+      Repo.insert! user2
+
+      update_param = %{ "email" => user1.email, "password" => "fugafuga", "auth_code" => "ADMIN" }
+
+      assert {:error, changeset} = User.update(user2.id, update_param)
+      assert changeset.errors == [email: {"has already been taken", []}]
     end
 
     test "update_email" do
@@ -163,8 +191,10 @@ defmodule Bibliotheca.UserTest do
       email = "another-user@example.com"
       User.update_email(id, email)
 
-      user = Repo.get!(User, id)
-      assert user.email == email
+      new_user = Repo.get!(User, id)
+      assert new_user.email == email
+      assert new_user.password_digest == user.password_digest
+      assert new_user.auth_code == user.auth_code
     end
 
     test "update_password" do
@@ -181,8 +211,10 @@ defmodule Bibliotheca.UserTest do
       password = "foobarbaz"
       User.update_password(id, password)
 
-      user = Repo.get!(User, id)
-      assert user.password_digest == HMAC.hexdigest(password)
+      new_user = Repo.get!(User, id)
+      assert new_user.email == user.email
+      assert new_user.password_digest == HMAC.hexdigest(password)
+      assert new_user.auth_code == user.auth_code
     end
   end
 

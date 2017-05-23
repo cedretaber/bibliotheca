@@ -43,6 +43,15 @@ defmodule Bibliotheca.ConnCase do
 
       defp jsonise(data), do:
         data |> Poison.encode!() |> Poison.decode!()
+
+      defp login_user(conn, user) do
+        token = Bibliotheca.Auth.HMAC.create_token()
+        Bibliotheca.Auth.Token.update_token user, token
+
+        conn
+        |> Plug.Conn.put_req_header(Application.get_env(:bibliotheca, :auth_header), token)
+        |> Plug.Conn.assign(:current_user, user)
+      end
     end
   end
 
@@ -54,6 +63,7 @@ defmodule Bibliotheca.ConnCase do
     end
 
     Bibliotheca.Repo.insert! @user
+    Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
     header = Application.get_env :bibliotheca, :auth_header
     token = Bibliotheca.Auth.HMAC.create_token()
     Bibliotheca.Auth.Token.update_token @user, token

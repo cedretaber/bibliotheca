@@ -41,14 +41,8 @@ defmodule Bibliotheca.User do
   def all, do:
     Repo.all(user_query())
 
-  def create(params) do
-    password_digest =
-      case params["password"] do
-        password when is_nil(password) or password == "" -> nil
-        password -> HMAC.hexdigest password
-      end
-    Repo.insert(changeset(%User{}, Map.put(params, "password_digest", password_digest)))
-  end
+  def create(params), do:
+    Repo.insert(changeset(%User{}, hash_password(params)))
 
   def find(id), do:
     Repo.one(from u in user_query(), where: u.id == ^id)
@@ -61,19 +55,16 @@ defmodule Bibliotheca.User do
       nil  ->
         nil
       user ->
-        password_digest =
-          case params["password"] do
-            password when is_nil(password) or password == "" -> nil
-            password -> HMAC.hexdigest password
-          end
-        Repo.update changeset(user, Map.put(params, "password_digest", password_digest))
+        Repo.update changeset(user, hash_password(params))
     end
   end
 
   def update_email id, email do
     case Repo.get __MODULE__, id do
-      nil  -> nil
-      user -> Repo.update changeset_email(user, %{ email: email })
+      nil  ->
+        nil
+      user ->
+        Repo.update changeset_email(user, %{ email: email })
     end
   end
 
@@ -82,8 +73,7 @@ defmodule Bibliotheca.User do
       nil  ->
         nil
       user ->
-        password_digest = HMAC.hexdigest password
-        Repo.update changeset_password(user, %{ password_digest: password_digest })
+        Repo.update changeset_password(user, hash_password(%{ "password" => password }))
     end
   end
 
@@ -95,4 +85,13 @@ defmodule Bibliotheca.User do
   end
 
   defp user_query, do: from(u in __MODULE__, where: is_nil(u.deleted_at))
+
+  defp hash_password(params) do
+    password_digest =
+      case params["password"] do
+        password when is_nil(password) or password == "" -> nil
+        password -> HMAC.hexdigest password
+      end
+    Map.put(params, "password_digest", password_digest)
+  end
 end

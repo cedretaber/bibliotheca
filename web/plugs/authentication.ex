@@ -17,7 +17,7 @@ defmodule Bibliotheca.Plugs.Authentication do
     else
       _ ->
         conn
-        |> send_resp(403, "Unauthorized")
+        |> send_resp(401, "Unauthorized")
         |> halt()
     end
   end
