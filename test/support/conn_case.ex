@@ -52,7 +52,7 @@ defmodule Bibliotheca.ConnCase do
         Bibliotheca.Auth.Token.update_token user, token
 
         conn
-        |> Plug.Conn.put_req_header(Application.get_env(:bibliotheca, :auth_header), token)
+        |> Plug.Conn.put_req_header(Bibliotheca.Plugs.Authentication.header(), token)
         |> Plug.Conn.assign(:current_user, user)
       end
     end
@@ -68,7 +68,7 @@ defmodule Bibliotheca.ConnCase do
     Bibliotheca.Repo.insert! @user
     Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
 
-    header = Application.get_env :bibliotheca, :auth_header
+    header = Bibliotheca.Plugs.Authentication.header()
     token = Bibliotheca.Auth.Token.create_token()
     Bibliotheca.Auth.Token.update_token @user, token
 

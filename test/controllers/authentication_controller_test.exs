@@ -3,6 +3,8 @@ defmodule Bibliotheca.AuthenticationControllerTest do
 
   alias Bibliotheca.Auth.Token
 
+  import Bibliotheca.Plugs.Authentication, only: [header: 0]
+
   @password1 @password
   @user1 @user
 
@@ -15,7 +17,7 @@ defmodule Bibliotheca.AuthenticationControllerTest do
        |> post("/api/login", login_param)
 
       assert conn.status == 204
-      [token] = get_resp_header(conn, Application.get_env(:bibliotheca, :auth_header))
+      [token] = get_resp_header(conn, header())
       assert token == Token.lookup_token(@user1.id)
     end
 
@@ -42,7 +44,7 @@ defmodule Bibliotheca.AuthenticationControllerTest do
 
   describe "logout" do
     test "logout success.", %{conn: conn} do
-      [token] = get_req_header(conn, Application.get_env(:bibliotheca, :auth_header))
+      [token] = get_req_header(conn, header())
       assert Token.lookup_user(token).id == @user1.id
       assert Token.lookup_token(@user1.id) == token
 
