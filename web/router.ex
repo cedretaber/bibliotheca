@@ -40,7 +40,7 @@ defmodule Bibliotheca.Router do
    scope "/api", Bibliotheca.Api do
      pipe_through :api_normal
 
-     get "/logout", AuthenticationController, :logout
+     delete "/logout", AuthenticationController, :logout
 
      scope "/books" do
        get "/", BookController, :index
