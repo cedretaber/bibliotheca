@@ -5,7 +5,7 @@ defmodule Bibliotheca.Plugs.Authentication do
 
   def authenticate(conn, _param) do
     header = Enum.find conn.req_headers, fn {field, _} ->
-      String.downcase(field) == Application.get_env(:bibliotheca, :auth_header)
+      String.downcase(field) == header()
     end
 
     with {_, token}                 <- header,
@@ -23,4 +23,5 @@ defmodule Bibliotheca.Plugs.Authentication do
   end
 
   def current_user(conn), do: conn.assigns[:current_user]
+  def header, do: Application.get_env(:bibliotheca, :auth_header) |> String.downcase()
 end

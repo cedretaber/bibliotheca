@@ -4,7 +4,7 @@ defmodule Bibliotheca.Api.AuthenticationController do
   alias Bibliotheca.User
   alias Bibliotheca.Auth.{HMAC, Token}
 
-  import Bibliotheca.Plugs.Authentication, only: [current_user: 1]
+  import Bibliotheca.Plugs.Authentication, only: [current_user: 1, header: 0]
 
   plug :scrub_params, "email" when action in [:login]
   plug :scrub_params, "password" when action in [:login]
@@ -20,7 +20,7 @@ defmodule Bibliotheca.Api.AuthenticationController do
           Token.update_token user, token
 
           conn
-          |> put_resp_header(Application.get_env(:bibliotheca, :auth_header), token)
+          |> put_resp_header(header(), token)
           |> send_resp(204, "")
         else
           login(conn, nil)

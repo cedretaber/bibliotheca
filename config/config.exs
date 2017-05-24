@@ -9,7 +9,7 @@ use Mix.Config
 config :bibliotheca,
   ecto_repos: [Bibliotheca.Repo],
   hmac_key: "Y3a2OGZHXrWXAizuJ8jElfxr5j2AbE9V",
-  auth_header: "bibliotheca-token"
+  auth_header: "Authorization"
 
 # Configures the endpoint
 config :bibliotheca, Bibliotheca.Endpoint,
