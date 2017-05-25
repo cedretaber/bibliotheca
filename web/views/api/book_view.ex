@@ -16,5 +16,6 @@ defmodule Bibliotheca.Api.BookView do
       publisher: book.publisher,
       publishedAt: book.published_at,
       pageCount: book.page_count,
-      isbn: book.isbn}
+      isbn: book.isbn,
+      insertedAt: book.inserted_at}
 end

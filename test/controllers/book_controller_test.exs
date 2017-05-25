@@ -19,7 +19,7 @@ defmodule Bibliotheca.BookControllerTest do
       conn = get(conn, "/api/books/")
 
       assert (json_response(conn, 200)["books"] |> Enum.sort_by(&(&1["id"]))) ==
-        (BookView.render("index.json", %{ books: (for book <- [@book1, @book2, @book3], do: Repo.preload(book, :authors)) }) |> jsonise())["books"]
+        (BookView.render("index.json", %{ books: (for book <- [@book1, @book2, @book3], do: Repo.one(from b in Book, where: b.id == ^book.id, preload: [:authors], select: b)) }) |> jsonise())["books"]
     end
 
     test "search one book" , %{conn: conn} do
@@ -28,7 +28,7 @@ defmodule Bibliotheca.BookControllerTest do
       conn = get(conn, "/api/books/?q=book2")
 
       assert (json_response(conn, 200)["books"] |> Enum.sort_by(&(&1["id"]))) ==
-             (BookView.render("index.json", %{ books: [@book2 |> Repo.preload(:authors)] }) |> jsonise())["books"]
+             (BookView.render("index.json", %{ books: [Repo.one(from b in Book, where: b.id == ^@book2.id, preload: [:authors], select: b)] }) |> jsonise())["books"]
     end
 
     test "with query all books.", %{conn: conn} do
@@ -37,7 +37,7 @@ defmodule Bibliotheca.BookControllerTest do
       conn = get(conn, "/api/books/?q=book")
 
       assert (json_response(conn, 200)["books"] |> Enum.sort_by(&(&1["id"]))) ==
-             (BookView.render("index.json", %{ books: (for book <- [@book1, @book2, @book3], do: Repo.preload(book, :authors)) }) |> jsonise())["books"]
+             (BookView.render("index.json", %{ books: (for book <- [@book1, @book2, @book3], do: Repo.one(from b in Book, where: b.id == ^book.id, preload: [:authors], select: b)) }) |> jsonise())["books"]
     end
 
     test "search some book.", %{conn: conn} do
@@ -46,7 +46,7 @@ defmodule Bibliotheca.BookControllerTest do
       conn = get(conn, "/api/books/?q=awesome")
 
       assert (json_response(conn, 200)["books"] |> Enum.sort_by(&(&1["id"]))) ==
-             (BookView.render("index.json", %{ books: (for book <- [@book1, @book3], do: Repo.preload(book, :authors)) }) |> jsonise())["books"]
+             (BookView.render("index.json", %{ books: (for book <- [@book1, @book3], do: Repo.one(from b in Book, where: b.id == ^book.id, preload: [:authors], select: b)) }) |> jsonise())["books"]
     end
   end
 
@@ -55,7 +55,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @book1
 
       conn = get(conn, "/api/books/detail/#{@book1.id}")
-      assert json_response(conn, 200) == (BookView.render("show.json", %{ book: Repo.preload(@book1, :authors) }) |> jsonise())
+      assert json_response(conn, 200) == (BookView.render("show.json", %{ book: Repo.one(from b in Book, where: b.id == ^@book1.id, preload: [:authors], select: b) }) |> jsonise())
     end
 
     test "get a nonexistent book.", %{conn: conn} do

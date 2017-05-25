@@ -27,11 +27,12 @@ defmodule Bibliotheca.UserControllerTest do
 
       conn = get(conn, "/api/users/")
 
-      assert (json_response(conn, 200)["users"] |> Enum.sort_by(&(&1["id"]))) == [
-        %{ "id" => 1, "email" => @user1.email, "authCode" => "ADMIN" },
-        %{ "id" => 2, "email" => email2, "authCode" => "NORMAL" },
-        %{ "id" => 3, "email" => email3, "authCode" => "NORMAL" }
-      ]
+      [user1, user2, user3] = (json_response(conn, 200)["users"] |> Enum.sort_by(&(&1["id"])))
+      email1 = @user1.email
+
+      assert %{ "id" => 1, "email" => ^email1, "authCode" => "ADMIN", "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ } = user1
+      assert %{ "id" => 2, "email" => ^email2, "authCode" => "NORMAL", "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ } = user2
+      assert %{ "id" => 3, "email" => ^email3, "authCode" => "NORMAL", "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ } = user3
     end
   end
 
@@ -70,7 +71,11 @@ defmodule Bibliotheca.UserControllerTest do
     test "show a user.", %{conn: conn} do
       conn = get(conn, "/api/users/#{@user1.id}")
 
-      assert json_response(conn, 200) == %{ "user" => %{ "id" => @user1.id, "email" => @user1.email, "authCode" => @user1.auth_code } }
+      id1 = @user1.id
+      email1 = @user1.email
+      auth_code1 = @user1.auth_code
+      assert %{ "user" => %{ "id" => ^id1, "email" => ^email1, "authCode" => ^auth_code1, "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ } } =
+        json_response(conn, 200)
     end
 
     test "show nonexistent user.", %{conn: conn} do
@@ -89,7 +94,9 @@ defmodule Bibliotheca.UserControllerTest do
       update_param = %{ email: new_email, password: new_password, auth_code: new_auth_code }
       conn = put(conn, "/api/users/#{@user1.id}", %{ user: update_param })
 
-      assert json_response(conn, 200) == %{ "user" => %{ "id" => @user1.id, "email" => new_email, "authCode" => new_auth_code } }
+      id1 = @user1.id
+      assert %{ "user" => %{ "id" => ^id1, "email" => ^new_email, "authCode" => ^new_auth_code, "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ } } =
+        json_response(conn, 200)
 
       new_user = Repo.get User, @user1.id
 
