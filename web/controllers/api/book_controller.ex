@@ -2,6 +2,7 @@ defmodule Bibliotheca.Api.BookController do
   use Bibliotheca.Web, :controller
 
   import Bibliotheca.Helpers.ErrorExtractor
+  import Bibliotheca.Plugs.Authentication, only: [current_user: 1]
 
   alias Bibliotheca.{Book, BookLent}
 
@@ -24,11 +25,15 @@ defmodule Bibliotheca.Api.BookController do
   def create(conn, %{"book" => book_param}), do:
     show_book conn, Book.create(book_param)
 
-  def lend(conn, %{"book_id" => book_id}), do:
-    resp_no_contents conn, BookLent.lend(conn.assigns[:current_user].id, book_id)
+  def lend(conn, %{"user_id" => user_id, "book_id" => book_id}), do:
+    resp_no_contents conn, BookLent.lend(user_id, book_id)
+  def lend(conn, %{"book_id" => _} = param), do:
+    lend(conn, Map.put(param, "user_id", current_user(conn).id))
 
-  def back(conn, %{"book_id" => book_id}), do:
-    resp_no_contents conn, BookLent.back(conn.assigns[:current_user].id, book_id)
+  def back(conn, %{"user_id" => user_id, "book_id" => book_id}), do:
+    resp_no_contents conn, BookLent.back(user_id, book_id)
+  def back(conn, %{"book_id" => _} = param), do:
+    back(conn, Map.put(param, "user_id", current_user(conn).id))
 
   def remove(conn, %{"id" => id}), do:
     resp_no_contents conn, Book.remove(id)

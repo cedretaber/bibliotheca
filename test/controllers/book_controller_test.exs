@@ -50,16 +50,16 @@ defmodule Bibliotheca.BookControllerTest do
     end
   end
 
-  describe "show" do
+  describe "show/2" do
     test "get a book.", %{conn: conn} do
       Repo.insert! @book1
 
-      conn = get(conn, "/api/books/#{@book1.id}")
+      conn = get(conn, "/api/books/detail/#{@book1.id}")
       assert json_response(conn, 200) == (BookView.render("show.json", %{ book: Repo.preload(@book1, :authors) }) |> jsonise())
     end
 
     test "get a nonexistent book.", %{conn: conn} do
-      conn = get(conn, "/api/books/42")
+      conn = get(conn, "/api/books/detail/42")
       assert json_response(conn, 404) == %{ "error" => "Book Not Found" }
     end
 
@@ -67,12 +67,12 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @book1
       Book.remove(@book1.id)
 
-      conn = get(conn, "/api/books/#{@book1.id}")
+      conn = get(conn, "/api/books/detail/#{@book1.id}")
       assert json_response(conn, 404) == %{ "error" => "Book Not Found" }
     end
   end
 
-  describe "create" do
+  describe "create/2" do
     test "create a book.", %{conn: conn} do
       params =
         %{title: "book1",
@@ -120,7 +120,37 @@ defmodule Bibliotheca.BookControllerTest do
     end
   end
 
-  describe "lend" do
+  describe "remove/2" do
+    test "remove a book.", %{conn: conn} do
+      Repo.insert! @book1
+      assert Book.find(@book1.id)
+
+      conn = delete(conn, "/api/books/#{@book1.id}")
+
+      assert conn.status == 204
+      refute Book.find(@book1.id)
+    end
+
+    test "remove an nonexistent book.", %{conn: conn} do
+      book_id = 42
+
+      conn = delete(conn, "/api/books/#{book_id}")
+
+      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
+    end
+
+    test "remove a removed book.", %{conn: conn} do
+      Repo.insert! @book1
+      assert {:ok, _} = Book.remove(@book1.id)
+      refute Book.find(@book1.id)
+
+      conn = delete(conn, "/api/books/#{@book1.id}")
+
+      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
+    end
+  end
+
+  describe "lend/2" do
     test "lent a book by normal user.", %{conn: conn} do
       Repo.insert! @user2
       Repo.insert! @book1
@@ -160,9 +190,34 @@ defmodule Bibliotheca.BookControllerTest do
 
       assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "The book is already lent.", details: [] } }] } |> jsonise())
     end
+
+    test "an admin user make another user to lent a book.", %{conn: conn} do
+      Repo.insert! @user2
+      Repo.insert! @book1
+      assert BookLent.lentable_book(@book1.id) == :ok
+
+      conn = get(conn, "/api/users/#{@user2.id}/books/lend/#{@book1.id}")
+
+      assert conn.status == 204
+      assert BookLent.lending_user(@book1.id).id == @user2.id
+    end
+
+    test "a normal user can't' make another user to lend a book.", %{conn: conn} do
+      Repo.insert! @user2
+      Repo.insert! @user3
+      Repo.insert! @book1
+      assert BookLent.lentable_book(@book1.id) == :ok
+
+      conn = conn
+        |> login_user(@user2)
+        |> get("/api/users/#{@user3.id}/books/lend/#{@book1.id}")
+
+      assert response(conn, 403) == "Forbidden"
+      refute BookLent.lending_user(@book1.id)
+    end
   end
 
-  describe "back" do
+  describe "back/2" do
     test "back a book lent by normal user.", %{conn: conn} do
       Repo.insert! @user2
       Repo.insert! @book1
@@ -203,35 +258,33 @@ defmodule Bibliotheca.BookControllerTest do
 
       assert json_response(conn, 400) == (%{ errors: [%{ book_lent: %{ message: "Book not lent.", details: [] } }] } |> jsonise())
     end
-  end
 
-  describe "remove" do
-    test "remove a book.", %{conn: conn} do
+    test "an admin user make another user to back a book.", %{conn: conn} do
+      Repo.insert! @user2
       Repo.insert! @book1
-      assert Book.find(@book1.id)
+      assert {:ok, _} = BookLent.lend(@user2.id, @book1.id)
+      assert BookLent.lending_user(@book1.id).id == @user2.id
 
-      conn = delete(conn, "/api/books/#{@book1.id}")
+      conn = delete(conn, "/api/users/#{@user2.id}/books/back/#{@book1.id}")
 
       assert conn.status == 204
-      refute Book.find(@book1.id)
+      refute BookLent.lending_user(@book1.id)
+      assert BookLent.lentable_book(@book1.id) == :ok
     end
 
-    test "remove an nonexistent book.", %{conn: conn} do
-      book_id = 42
-
-      conn = delete(conn, "/api/books/#{book_id}")
-
-      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
-    end
-
-    test "remove a removed book.", %{conn: conn} do
+    test "a normal user can't' make another user to back a book.", %{conn: conn} do
+      Repo.insert! @user2
+      Repo.insert! @user3
       Repo.insert! @book1
-      assert {:ok, _} = Book.remove(@book1.id)
-      refute Book.find(@book1.id)
+      assert {:ok, _} = BookLent.lend(@user3.id, @book1.id)
+      assert BookLent.lending_user(@book1.id).id == @user3.id
 
-      conn = delete(conn, "/api/books/#{@book1.id}")
+      conn = conn
+        |> login_user(@user2)
+        |> delete("/api/users/#{@user3.id}/books/back/#{@book1.id}")
 
-      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
+      assert response(conn, 403) == "Forbidden"
+      assert BookLent.lending_user(@book1.id).id == @user3.id
     end
   end
 end
