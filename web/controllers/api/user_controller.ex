@@ -40,6 +40,7 @@ defmodule Bibliotheca.Api.UserController do
     case ret_param do
       {:ok, _}            -> send_resp conn, 204, ""
       {:error, changeset} -> client_error conn, changeset
+      nil                 -> user_not_found(conn)
     end
   end
 
