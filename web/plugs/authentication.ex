@@ -3,7 +3,7 @@ defmodule Bibliotheca.Plugs.Authentication do
 
   alias Bibliotheca.Auth.Token
 
-  def authenticate(conn, _param) do
+  def authenticate(conn, _params) do
     header = Enum.find conn.req_headers, fn {field, _} ->
       String.downcase(field) == header()
     end

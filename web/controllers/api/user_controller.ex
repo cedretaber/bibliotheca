@@ -2,12 +2,14 @@ defmodule Bibliotheca.Api.UserController do
   use Bibliotheca.Web, :controller
 
   import Bibliotheca.Helpers.ErrorExtractor
+  import Bibliotheca.Plugs.CaseConverter, only: [conv_case: 2]
 
   alias Bibliotheca.User
 
   @user_not_found "User Not Found"
 
   plug :scrub_params, "user" when action in [:create, :update]
+  plug :conv_case when action in [:create, :update]
 
   def index(conn, _param), do:
     render conn, :index, users: User.all
