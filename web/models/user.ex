@@ -13,27 +13,27 @@ defmodule Bibliotheca.User do
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
-  def changeset(struct, params \\ %{}), do:
-    struct
-    |> cast(params, [:email, :password_digest, :auth_code])
-    |> validate_required([:email, :password_digest, :auth_code])
-    |> unique_constraint(:email)
-
-  def changeset_email(struct, params \\ %{}), do:
+  def changeset(struct, %{email: _} = params), do:
     struct
     |> cast(params, [:email])
     |> validate_required([:email])
     |> unique_constraint(:email)
 
-  def changeset_password(struct, params \\ %{}), do:
+  def changeset(struct, %{password_digest: _} = params), do:
     struct
     |> cast(params, [:password_digest])
     |> validate_required([:password_digest])
 
-  def changeset_deleted_at(struct, params \\ %{}), do:
+  def changeset(struct, %{deleted_at: _} = params), do:
     struct
     |> cast(params, [:deleted_at])
     |> validate_required([:deleted_at])
+
+  def changeset(struct, params), do:
+    struct
+    |> cast(params, [:email, :password_digest, :auth_code])
+    |> validate_required([:email, :password_digest, :auth_code])
+    |> unique_constraint(:email)
 
   alias Bibliotheca.{Repo, User}
   alias Bibliotheca.Auth.HMAC
@@ -42,7 +42,7 @@ defmodule Bibliotheca.User do
     Repo.all(user_query())
 
   def create(params), do:
-    Repo.insert(changeset(%User{}, hash_password(params)))
+    Repo.insert(changeset %User{}, hash_password params)
 
   def find(id), do:
     Repo.one(from u in user_query(), where: u.id == ^id)
@@ -50,39 +50,17 @@ defmodule Bibliotheca.User do
   def find_by_email(email), do:
     Repo.one(from u in user_query(), where: u.email == ^email)
 
-  def update id, params do
-    case find(id) do
-      nil  ->
-        nil
-      user ->
-        Repo.update changeset(user, hash_password(params))
-    end
-  end
+  def update(id, params), do:
+    (user = find id) && Repo.update(changeset user, hash_password params)
 
-  def update_email id, email do
-    case find(id) do
-      nil  ->
-        nil
-      user ->
-        Repo.update changeset_email(user, %{ email: email })
-    end
-  end
+  def update_email(id, email), do:
+    (user = find id) && Repo.update(changeset user, %{ email: email })
 
-  def update_password id, password do
-    case find(id) do
-      nil  ->
-        nil
-      user ->
-        Repo.update changeset_password(user, hash_password(%{ "password" => password }))
-    end
-  end
+  def update_password(id, password), do:
+    (user = find id) && Repo.update(changeset user, intern_password hash_password %{ "password" => password })
 
-  def delete id do
-    case find(id) do
-      nil  -> nil
-      user -> Repo.update changeset_deleted_at(user, %{ deleted_at: NaiveDateTime.utc_now })
-    end
-  end
+  def delete(id), do:
+    (user = find id) && Repo.update(changeset user, %{ deleted_at: NaiveDateTime.utc_now })
 
   defp user_query, do: from u in __MODULE__, where: is_nil(u.deleted_at)
 
@@ -92,6 +70,8 @@ defmodule Bibliotheca.User do
         password when is_nil(password) or password == "" -> nil
         password -> HMAC.hexdigest password
       end
-    Map.put(params, "password_digest", password_digest)
+    put_in(params["password_digest"], password_digest)
   end
+
+  defp intern_password(param), do: %{ password_digest: param["password_digest"] }
 end

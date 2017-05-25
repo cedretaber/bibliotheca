@@ -118,6 +118,29 @@ defmodule Bibliotheca.BookControllerTest do
 
       assert json_response(conn, 400) == (%{ errors: [%{ title: %{ message: "can't be blank", details: [%{validation: :required}] } }] } |> jsonise())
     end
+
+    test "there are no problem with a camelCase param.", %{conn: conn} do
+      params =
+        %{title: "book1",
+          description: "An awesome book!",
+          authors: ["author1", "author2", "author3"],
+          publisher: "Pub co., ltd.",
+          imageUrl: "http://example.com/sample.png",
+          isbn: "123456789012X",
+          pageCount: 334,
+          publishedAt: "2010-04-01"}
+
+      conn = post(conn, "/api/books", %{ book: params })
+
+      book = Repo.get_by(Book, title: params[:title]) |> Repo.preload(:authors)
+
+      for attr <- ~w(title description publisher imageUrl isbn pageCount)a, do:
+        assert {:ok, params[attr]} == Map.fetch(book, String.to_atom Macro.underscore to_string attr)
+      assert params[:authors] == (for author <- book.authors, do: author.name)
+      assert ~D[2010-04-01] == book.published_at
+
+      assert json_response(conn, 200) == (BookView.render("show.json", %{ book: book }) |> jsonise())
+    end
   end
 
   describe "remove/2" do
@@ -168,7 +191,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @user2
 
       book_id = 42
-      assert {:error, _} = BookLent.lentable_book(book_id)
+      assert match?({:error, _}, BookLent.lentable_book(book_id))
 
       conn = conn
         |> login_user(@user2)
@@ -181,7 +204,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @user2
       Repo.insert! @user3
       Repo.insert! @book1
-      assert {:ok, _} = BookLent.lend(@user3.id, @book1.id)
+      assert match? {:ok, _}, BookLent.lend(@user3.id, @book1.id)
       assert BookLent.lending_user(@book1.id).id == @user3.id
 
       conn = conn
@@ -249,7 +272,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @user2
       Repo.insert! @user3
       Repo.insert! @book1
-      assert {:ok, _} = BookLent.lend(@user3.id, @book1.id)
+      assert match? {:ok, _}, BookLent.lend(@user3.id, @book1.id)
       assert BookLent.lending_user(@book1.id).id == @user3.id
 
       conn = conn
@@ -262,7 +285,7 @@ defmodule Bibliotheca.BookControllerTest do
     test "an admin user make another user to back a book.", %{conn: conn} do
       Repo.insert! @user2
       Repo.insert! @book1
-      assert {:ok, _} = BookLent.lend(@user2.id, @book1.id)
+      assert match? {:ok, _}, BookLent.lend(@user2.id, @book1.id)
       assert BookLent.lending_user(@book1.id).id == @user2.id
 
       conn = delete(conn, "/api/users/#{@user2.id}/books/back/#{@book1.id}")
@@ -276,7 +299,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @user2
       Repo.insert! @user3
       Repo.insert! @book1
-      assert {:ok, _} = BookLent.lend(@user3.id, @book1.id)
+      assert match? {:ok, _}, BookLent.lend(@user3.id, @book1.id)
       assert BookLent.lending_user(@book1.id).id == @user3.id
 
       conn = conn

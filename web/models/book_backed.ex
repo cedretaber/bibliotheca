@@ -35,9 +35,10 @@ defmodule Bibliotheca.BookBacked do
   end
 
   defp fetch(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, _} = ret -> ret
-      :error -> {:error, key}
+    if ret = get_in map, [key] do
+      {:ok, ret}
+    else
+      {:error, key}
     end
   end
 

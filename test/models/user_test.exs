@@ -21,24 +21,19 @@ defmodule Bibliotheca.UserTest do
       refute changeset.valid?
     end
 
-    test "changeset_email with valid attributes" do
-      changeset = User.changeset_email(%User{}, %{ email: "test@example.com" })
+    test "changeset(email) with valid attributes" do
+      changeset = User.changeset(%User{}, %{ email: "test@example.com" })
       assert changeset.valid?
     end
 
-    test "changeset_email with invalid attributes" do
-      changeset = User.changeset_email(%User{}, @invalid_attrs)
-      refute changeset.valid?
-    end
-
-    test "changeset_password with valid attributes" do
-      changeset = User.changeset_password(%User{}, %{ password_digest: "hogehogefugafuga" })
+    test "changeset(password) with valid attributes" do
+      changeset = User.changeset(%User{}, %{ password_digest: "hogehogefugafuga" })
       assert changeset.valid?
     end
 
-    test "changeset_password with invalid attributes" do
-      changeset = User.changeset_password(%User{}, @invalid_attrs)
-      refute changeset.valid?
+    test "changeset(deleted_at) with valid attributes" do
+      changeset = User.changeset(%User{}, %{ deleted_at: NaiveDateTime.utc_now })
+      assert changeset.valid?
     end
   end
 
