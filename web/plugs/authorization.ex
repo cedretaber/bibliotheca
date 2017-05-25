@@ -9,5 +9,5 @@ defmodule Bibliotheca.Plugs.Authorization do
     end
   end
 
-  defp reject(conn), do: conn |> put_status(403) |> halt()
+  defp reject(conn), do: conn |> send_resp(403, "Forbidden") |> halt()
 end

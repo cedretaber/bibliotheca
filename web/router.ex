@@ -30,6 +30,10 @@ defmodule Bibliotheca.Router do
      pipe_through :api_admin
 
      resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
+     scope "/users" do
+       get "/:user_id/books/lend/:book_id", BookController, :lend
+       delete "/:user_id/books/back/:book_id", BookController, :back
+     end
 
      scope "/books" do
        post "/", BookController, :create
@@ -44,7 +48,7 @@ defmodule Bibliotheca.Router do
 
      scope "/books" do
        get "/", BookController, :index
-       get "/:id", BookController, :show
+       get "/detail/:id", BookController, :show
        get "/lend/:book_id", BookController, :lend
        delete "/back/:book_id", BookController, :back
      end
