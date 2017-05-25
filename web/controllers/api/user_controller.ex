@@ -23,18 +23,31 @@ defmodule Bibliotheca.Api.UserController do
   end
 
   def update(conn, %{"id" => id, "user" => user_params}), do:
-    show_user(conn, User.update(id, user_params))
+    show_user conn, User.update(id, user_params)
 
   def delete(conn, %{"id" => id}), do:
-    show_user(conn, User.delete(id))
+    resp_no_content conn, User.delete(id)
 
-  defp show_user conn, ret_param do
+  defp show_user(conn, ret_param) do
     case ret_param do
       {:ok, user}         -> render conn, :show, user: user
-      {:error, changeset} -> conn |> put_status(400) |> json(%{ errors: extract_errors(changeset)})
+      {:error, changeset} -> client_error conn, changeset
       nil                 -> user_not_found(conn)
     end
   end
+
+  defp resp_no_content(conn, ret_param) do
+    case ret_param do
+      {:ok, _}            -> send_resp conn, 204, ""
+      {:error, changeset} -> client_error conn, changeset
+      nil                 -> user_not_found(conn)
+    end
+  end
+
+  defp client_error(conn, changeset), do:
+    conn
+    |> put_status(400)
+    |> json(%{ errors: extract_errors(changeset)})
 
   defp user_not_found(conn) do
     conn

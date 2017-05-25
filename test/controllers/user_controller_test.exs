@@ -72,6 +72,12 @@ defmodule Bibliotheca.UserControllerTest do
 
       assert json_response(conn, 200) == %{ "user" => %{ "id" => @user1.id, "email" => @user1.email, "authCode" => @user1.auth_code } }
     end
+
+    test "show nonexistent user.", %{conn: conn} do
+      conn = get(conn, "/api/users/42")
+
+      assert json_response(conn, 404) == (%{ error: "User Not Found" } |> jsonise())
+    end
   end
 
   describe "update/2" do
@@ -104,13 +110,28 @@ defmodule Bibliotheca.UserControllerTest do
       assert json_response(conn, 400) ==
         (%{ errors: [%{ email: %{ message: "has already been taken", details: [] } }] } |> jsonise())
     end
+
+    test "update nonexistent user.", %{conn: conn} do
+      update_param = %{ email: "hoge@example.com", password: "hogehoge", auth_code: "NORMAL" }
+
+      conn = put(conn, "/api/users/42", %{ user: update_param })
+
+      assert json_response(conn, 404) == (%{ error: "User Not Found" } |> jsonise())
+    end
   end
 
   describe "delete/2" do
     test "delete a user.", %{conn: conn} do
-      delete(conn, "/api/users/#{@user1.id}")
+      conn = delete(conn, "/api/users/#{@user1.id}")
 
+      assert conn.status == 204
       assert User.find(@user1.id) == nil
+    end
+
+    test "delete nonexistent user.", %{conn: conn} do
+      conn = delete(conn, "/api/users/42")
+
+      assert json_response(conn, 404) == (%{ error: "User Not Found" } |> jsonise())
     end
   end
 end

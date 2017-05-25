@@ -16,10 +16,8 @@ defmodule Bibliotheca.Api.BookController do
     index(conn, %{"q" => ""})
 
   def show(conn, %{"id" => id}) do
-    case Book.find(id) do
-      nil -> book_not_found(conn)
-      book -> render conn, :show, book: book
-    end
+    book = Book.find(id)
+    show_book(conn, (if is_nil(book), do: nil, else: {:ok, book}))
   end
 
   def create(conn, %{"book" => book_param}), do:
@@ -40,24 +38,24 @@ defmodule Bibliotheca.Api.BookController do
 
   defp show_book(conn, ret) do
     case ret do
-      {:ok, book} -> render conn, :show, book: book
-      {:error, changeset} ->
-        conn
-        |> put_status(400)
-        |> json(%{ errors: extract_errors(changeset)})
-      nil -> book_not_found(conn)
+      {:ok, book}         -> render conn, :show, book: book
+      {:error, changeset} -> client_error conn, changeset
+      nil                 -> book_not_found conn
     end
   end
 
   defp resp_no_contents(conn, ret) do
     case ret do
-      {:ok, _} -> send_resp(conn, 204, "")
-      {:error, changeset} ->
-        conn
-        |> put_status(400)
-        |> json(%{ errors: extract_errors(changeset)})
+      {:ok, _}            -> send_resp conn, 204, ""
+      {:error, changeset} -> client_error conn, changeset
+      nil                 -> book_not_found conn
     end
   end
+
+  defp client_error(conn, changeset), do:
+    conn
+    |> put_status(400)
+    |> json(%{ errors: extract_errors(changeset)})
 
   defp book_not_found(conn) do
     conn
