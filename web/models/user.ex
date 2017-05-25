@@ -51,7 +51,7 @@ defmodule Bibliotheca.User do
     Repo.one(from u in user_query(), where: u.email == ^email)
 
   def update id, params do
-    case Repo.get __MODULE__, id do
+    case find(id) do
       nil  ->
         nil
       user ->
@@ -60,7 +60,7 @@ defmodule Bibliotheca.User do
   end
 
   def update_email id, email do
-    case Repo.get __MODULE__, id do
+    case find(id) do
       nil  ->
         nil
       user ->
@@ -69,7 +69,7 @@ defmodule Bibliotheca.User do
   end
 
   def update_password id, password do
-    case Repo.get __MODULE__, id do
+    case find(id) do
       nil  ->
         nil
       user ->
@@ -78,13 +78,13 @@ defmodule Bibliotheca.User do
   end
 
   def delete id do
-    case Repo.get __MODULE__, id do
+    case find(id) do
       nil  -> nil
       user -> Repo.update changeset_deleted_at(user, %{ deleted_at: NaiveDateTime.utc_now })
     end
   end
 
-  defp user_query, do: from(u in __MODULE__, where: is_nil(u.deleted_at))
+  defp user_query, do: from u in __MODULE__, where: is_nil(u.deleted_at)
 
   defp hash_password(params) do
     password_digest =

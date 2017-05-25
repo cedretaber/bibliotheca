@@ -108,8 +108,9 @@ defmodule Bibliotheca.UserControllerTest do
 
   describe "delete/2" do
     test "delete a user.", %{conn: conn} do
-      delete(conn, "/api/users/#{@user1.id}")
+      conn = delete(conn, "/api/users/#{@user1.id}")
 
+      assert conn.status == 204
       assert User.find(@user1.id) == nil
     end
   end
