@@ -21,5 +21,14 @@ defmodule Bibliotheca.Plugs.CaseConverterTest do
 
       assert conn.params == params
     end
+
+    test "nested param.", %{conn: conn} do
+      params = %{"hogeFuga" => %{"fooBar" => 42}}
+      conn = %{conn | params: params}
+        |> conv_case(nil)
+
+      assert conn.params ==
+        %{"hogeFuga" => %{"fooBar" => 42}, "hoge_fuga" => %{"fooBar" => 42, "foo_bar" => 42}}
+    end
   end
 end
