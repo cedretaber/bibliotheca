@@ -148,7 +148,7 @@ defmodule Bibliotheca.BookControllerTest do
       Repo.insert! @book1
       assert Book.find(@book1.id)
 
-      conn = delete(conn, "/api/books/#{@book1.id}")
+      conn = delete(conn, "/api/books/remove/#{@book1.id}")
 
       assert conn.status == 204
       refute Book.find(@book1.id)
@@ -157,7 +157,7 @@ defmodule Bibliotheca.BookControllerTest do
     test "remove an nonexistent book.", %{conn: conn} do
       book_id = 42
 
-      conn = delete(conn, "/api/books/#{book_id}")
+      conn = delete(conn, "/api/books/remove/#{book_id}")
 
       assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
     end
@@ -167,7 +167,7 @@ defmodule Bibliotheca.BookControllerTest do
       assert {:ok, _} = Book.remove(@book1.id)
       refute Book.find(@book1.id)
 
-      conn = delete(conn, "/api/books/#{@book1.id}")
+      conn = delete(conn, "/api/books/remove/#{@book1.id}")
 
       assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
     end
