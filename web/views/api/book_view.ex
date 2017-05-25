@@ -12,9 +12,9 @@ defmodule Bibliotheca.Api.BookView do
       title: book.title,
       authors: (for author <- book.authors, do: author.name),
       description: book.description,
-      image_url: book.image_url,
+      imageUrl: book.image_url,
       publisher: book.publisher,
       publishedAt: book.published_at,
-      page_count: book.page_count,
+      pageCount: book.page_count,
       isbn: book.isbn}
 end
