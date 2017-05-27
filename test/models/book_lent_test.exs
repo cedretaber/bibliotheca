@@ -156,7 +156,7 @@ defmodule Bibliotheca.BookLentTest do
       assert BookLent.lending_books(@user.id) == []
     end
 
-    test "user who has lent some books." do
+    test "user who is lending some books." do
       Repo.insert! @user
 
       book1 = @book

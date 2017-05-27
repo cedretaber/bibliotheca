@@ -4,7 +4,7 @@ defmodule Bibliotheca.BookControllerTest do
   alias Bibliotheca.{Repo, Book, BookLent, User}
   alias Bibliotheca.Api.BookView
 
-#  @user1 @user
+  @user1 @user
   @user2 %User{id: 2, email: "user2@example.com", password_digest: "password", auth_code: "NORMAL"}
   @user3 %User{ @user2 | id: 3, email: "user3@example.com" }
 
@@ -50,12 +50,71 @@ defmodule Bibliotheca.BookControllerTest do
     end
   end
 
+  describe "lending/2" do
+    test "when the user has lent no book.", %{conn: conn} do
+      conn = get(conn, "/api/books/lending")
+
+      assert json_response(conn, 200) == (BookView.render("index.json", %{books: []}) |> jsonise())
+    end
+
+    test "when the user is lending some books.", %{conn: conn} do
+      book1 = @book1
+      book2 = %{ book1 | id: 2, title: "book2" }
+      book3 = %{ book1 | id: 3, title: "book3" }
+
+      for book <- [book1, book2, book3] do
+        Repo.insert! book
+        assert match? {:ok, _}, BookLent.lend(@user1.id, book.id)
+      end
+
+      assert match? {:ok, _}, BookLent.back(@user1.id, book2.id)
+
+      books = for book <- [book1, book3], do: Repo.get!(Book, book.id) |> Repo.preload(:authors)
+
+      conn = get(conn, "/api/books/lending")
+      assert json_response(conn, 200) == (BookView.render("index.json", %{books: books}) |> jsonise())
+    end
+
+    test "admin user can show books which another user is lending.", %{conn: conn} do
+      Repo.insert! @user2
+
+      book1 = @book1
+      book2 = %{ book1 | id: 2, title: "book2" }
+      book3 = %{ book1 | id: 3, title: "book3" }
+
+      for book <- [book1, book2, book3] do
+        Repo.insert! book
+        assert match? {:ok, _}, BookLent.lend(@user2.id, book.id)
+      end
+
+      assert match? {:ok, _}, BookLent.back(@user2.id, book2.id)
+
+      books = for book <- [book1, book3], do: Repo.get!(Book, book.id) |> Repo.preload(:authors)
+
+      conn = get(conn, "/api/users/#{@user2.id}/lending")
+      assert json_response(conn, 200) == (BookView.render("index.json", %{books: books}) |> jsonise())
+    end
+
+    test "normal user can't' show books which another user is lending.", %{conn: conn} do
+      Repo.insert! @user2
+      Repo.insert! @user3
+
+      conn = conn
+        |> login_user(@user3)
+        |> get("/api/users/#{@user2.id}/lending")
+
+      assert response(conn, 403) == "Forbidden"
+    end
+  end
+
   describe "show/2" do
     test "get a book.", %{conn: conn} do
       Repo.insert! @book1
 
       conn = get(conn, "/api/books/detail/#{@book1.id}")
-      assert json_response(conn, 200) == (BookView.render("show.json", %{ book: Repo.one(from b in Book, where: b.id == ^@book1.id, preload: [:authors], select: b) }) |> jsonise())
+      books = Repo.one(from b in Book, where: b.id == ^@book1.id, preload: [:authors], select: b)
+
+      assert json_response(conn, 200) == (BookView.render("show.json", %{ book: books }) |> jsonise())
     end
 
     test "get a nonexistent book.", %{conn: conn} do

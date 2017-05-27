@@ -31,19 +31,20 @@ defmodule Bibliotheca.BookLent do
 
   def lending_books(user_id), do:
     Repo.all(
-      from bl in BookLent,
+      from b in Book,
+        inner_join: bl in BookLent, on: b.id == bl.book_id,
         inner_join: u in User, on: bl.user_id == u.id,
-        inner_join: b in Book, on: bl.book_id == b.id,
         left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
         where: u.id == ^user_id and is_nil(bb.id),
         order_by: [asc: b.id],
+        preload: [:authors],
         select: b
     )
 
   def lending_user(book_id), do:
     Repo.one(
-      from bl in BookLent,
-        inner_join: u in User, on: bl.user_id == u.id,
+      from u in User,
+        inner_join: bl in BookLent, on: u.id == bl.user_id,
         inner_join: b in Book, on: bl.book_id == b.id,
         left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
         where: b.id == ^book_id and is_nil(bb.id),
