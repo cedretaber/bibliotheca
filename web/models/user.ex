@@ -62,7 +62,7 @@ defmodule Bibliotheca.User do
   def delete(id), do:
     (user = find id) && Repo.update(changeset user, %{ deleted_at: NaiveDateTime.utc_now })
 
-  defp user_query, do: from u in __MODULE__, where: is_nil(u.deleted_at)
+  defp user_query, do: from u in __MODULE__, where: is_nil(u.deleted_at), order_by: [asc: u.id]
 
   defp hash_password(params) do
     password_digest =

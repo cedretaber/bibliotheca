@@ -53,7 +53,7 @@ defmodule Bibliotheca.Book do
         or like(b.isbn, ^k),
       distinct: b.id,
       preload: :authors,
-      order_by: b.id
+      order_by: [asc: b.id]
 
     Repo.all(q)
   end

@@ -29,6 +29,17 @@ defmodule Bibliotheca.BookLent do
   def back(user_id, book_id), do:
     BookBacked.back(user_id, book_id)
 
+  def lending_books(user_id), do:
+    Repo.all(
+      from bl in BookLent,
+        inner_join: u in User, on: bl.user_id == u.id,
+        inner_join: b in Book, on: bl.book_id == b.id,
+        left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
+        where: u.id == ^user_id and is_nil(bb.id),
+        order_by: [asc: b.id],
+        select: b
+    )
+
   def lending_user(book_id), do:
     Repo.one(
       from bl in BookLent,
