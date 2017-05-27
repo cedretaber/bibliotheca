@@ -31,6 +31,7 @@ defmodule Bibliotheca.Router do
 
      resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
      scope "/users" do
+       get    "/:user_id/lending", BookController, :lending
        get    "/:user_id/books/lend/:book_id", BookController, :lend
        delete "/:user_id/books/back/:book_id", BookController, :back
      end
@@ -47,8 +48,9 @@ defmodule Bibliotheca.Router do
      delete "/logout", AuthenticationController, :logout
 
      scope "/books" do
-       get    "/",              BookController, :index
-       get    "/detail/:id",    BookController, :show
+       get    "/", BookController, :index
+       get    "/lending", BookController, :lending
+       get    "/detail/:id", BookController, :show
        get    "/lend/:book_id", BookController, :lend
        delete "/back/:book_id", BookController, :back
      end
