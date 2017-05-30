@@ -45,13 +45,13 @@ defmodule Bibliotheca.AuthenticationControllerTest do
   describe "logout" do
     test "logout success.", %{conn: conn} do
       [token] = get_req_header(conn, header())
-      assert Token.lookup_user(token).id == @user1.id
+      assert Token.lookup_user_id(token) == @user1.id
       assert Token.lookup_token(@user1.id) == token
 
       conn = delete(conn, "/api/logout")
 
       assert conn.status == 204
-      refute Token.lookup_user(token)
+      refute Token.lookup_user_id(token)
       refute Token.lookup_token(@user1.id)
     end
   end

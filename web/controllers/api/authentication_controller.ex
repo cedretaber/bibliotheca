@@ -17,7 +17,7 @@ defmodule Bibliotheca.Api.AuthenticationController do
         if user.password_digest == HMAC.hexdigest(password) do
           token = Token.create_token()
 
-          Token.update_token user, token
+          Token.update_token user.id, token
 
           conn
           |> put_resp_header(header(), token)

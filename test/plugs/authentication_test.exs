@@ -7,9 +7,10 @@ defmodule Bibliotheca.Plugs.AuthenticationTest do
 
   test "access success when logged in", %{conn: conn} do
     conn = authenticate(conn, nil)
+    user = Repo.get Bibliotheca.User, @user.id
 
-    assert conn.assigns[:token] == Token.lookup_token(@user.id)
-    assert current_user(conn) == @user
+    assert conn.private[Bibliotheca.Plugs.Authentication] == Token.lookup_token(user.id)
+    assert current_user(conn) == user
   end
 
   test "access was refused when not logged in", %{conn: conn} do
