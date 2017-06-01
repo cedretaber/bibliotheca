@@ -48,12 +48,13 @@ defmodule Bibliotheca.ConnCase do
         data |> Poison.encode!() |> Poison.decode!()
 
       defp login_user(conn, user) do
-        token = Bibliotheca.Auth.Token.create_token()
-        Bibliotheca.Auth.Token.update_token user.id, token
+        conn = Guardian.Plug.api_sign_in conn, user
 
-        conn
-        |> Plug.Conn.put_req_header(Bibliotheca.Plugs.Authentication.header(), token)
-        |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, user.id)
+        header = Bibliotheca.Plugs.Authentication.header()
+        realm  = Bibliotheca.Plugs.Authentication.realm()
+        jwt    = Guardian.Plug.current_token conn
+
+        Plug.Conn.put_resp_header(conn, header, "#{realm} #{jwt}")
       end
     end
   end
@@ -68,15 +69,17 @@ defmodule Bibliotheca.ConnCase do
     Bibliotheca.Repo.insert! @user
     Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
 
-    header = Bibliotheca.Plugs.Authentication.header()
-    token = Bibliotheca.Auth.Token.create_token()
-    Bibliotheca.Auth.Token.update_token @user.id, token
-
     conn =
       Phoenix.ConnTest.build_conn()
+      |> Guardian.Plug.api_sign_in(@user)
+
+    header = Bibliotheca.Plugs.Authentication.header()
+    realm  = Bibliotheca.Plugs.Authentication.realm()
+    jwt    = Guardian.Plug.current_token conn
+
+    conn = conn
       |> Plug.Conn.put_req_header("accept", "application/json")
-      |> Plug.Conn.put_req_header(header, token)
-      |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, @user.id)
+      |> Plug.Conn.put_req_header(header, "#{realm} #{jwt}")
 
     {:ok, conn: conn}
   end

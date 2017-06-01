@@ -1,22 +1,26 @@
 defmodule Bibliotheca.Router do
   use Bibliotheca.Web, :router
 
-  import Bibliotheca.Plugs.{Authorization, Authentication}
+  import Bibliotheca.Plugs.Authorization
+  import Bibliotheca.Plugs.Authentication, only: [realm: 0]
 
   pipeline :api_no_auth do
     plug :accepts, ["json"]
   end
 
-  pipeline :api_normal do
+  pipeline :api do
     plug :accepts, ["json"]
-    plug :authenticate
-    plug :authorize, [:normal]
+    plug Guardian.Plug.VerifyHeader, realm: realm()
+    plug Guardian.Plug.LoadResource
+    plug Guardian.Plug.EnsureAuthenticated, handler: Bibliotheca.Plugs.Authentication
   end
 
   pipeline :api_admin do
-    plug :accepts, ["json"]
-    plug :authenticate
     plug :authorize, [:admin]
+  end
+
+  pipeline :api_normal do
+    plug :authorize, [:normal]
   end
 
   scope "/api", Bibliotheca.Api do
@@ -27,6 +31,7 @@ defmodule Bibliotheca.Router do
   end
 
    scope "/api", Bibliotheca.Api do
+     pipe_through :api
      pipe_through :api_admin
 
      resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
@@ -43,9 +48,8 @@ defmodule Bibliotheca.Router do
    end
 
    scope "/api", Bibliotheca.Api do
+     pipe_through :api
      pipe_through :api_normal
-
-     delete "/logout", AuthenticationController, :logout
 
      scope "/books" do
        get    "/", BookController, :index
