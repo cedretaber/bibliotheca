@@ -49,11 +49,11 @@ defmodule Bibliotheca.ConnCase do
 
       defp login_user(conn, user) do
         token = Bibliotheca.Auth.Token.create_token()
-        Bibliotheca.Auth.Token.update_token user, token
+        Bibliotheca.Auth.Token.update_token user.id, token
 
         conn
         |> Plug.Conn.put_req_header(Bibliotheca.Plugs.Authentication.header(), token)
-        |> Plug.Conn.assign(:current_user, user)
+        |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, user.id)
       end
     end
   end
@@ -70,13 +70,13 @@ defmodule Bibliotheca.ConnCase do
 
     header = Bibliotheca.Plugs.Authentication.header()
     token = Bibliotheca.Auth.Token.create_token()
-    Bibliotheca.Auth.Token.update_token @user, token
+    Bibliotheca.Auth.Token.update_token @user.id, token
 
     conn =
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("accept", "application/json")
       |> Plug.Conn.put_req_header(header, token)
-      |> Plug.Conn.assign(:current_user, @user)
+      |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, @user.id)
 
     {:ok, conn: conn}
   end
