@@ -6,9 +6,6 @@ defmodule Bibliotheca do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    # Tokens of logged in users.
-    Bibliotheca.Auth.Token.init
-
     # Define workers and child supervisors to be supervised
     children = [
       # Start the Ecto repository

@@ -10,6 +10,9 @@ defmodule Bibliotheca.User do
     timestamps()
   end
 
+  alias Bibliotheca.Auth.HMAC
+  alias Bibliotheca.{Repo, User}
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
@@ -34,9 +37,6 @@ defmodule Bibliotheca.User do
     |> cast(params, [:email, :password_digest, :auth_code])
     |> validate_required([:email, :password_digest, :auth_code])
     |> unique_constraint(:email)
-
-  alias Bibliotheca.{Repo, User}
-  alias Bibliotheca.Auth.HMAC
 
   def all, do:
     Repo.all(user_query())
@@ -67,8 +67,10 @@ defmodule Bibliotheca.User do
   defp hash_password(params) do
     password_digest =
       case params["password"] do
-        password when is_nil(password) or password == "" -> nil
-        password -> HMAC.hexdigest password
+        password when is_nil(password) or password == "" ->
+          nil
+        password ->
+          HMAC.hexdigest(password)
       end
     put_in(params["password_digest"], password_digest)
   end

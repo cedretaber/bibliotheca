@@ -8,7 +8,7 @@ use Mix.Config
 # General application configuration
 config :bibliotheca,
   ecto_repos: [Bibliotheca.Repo],
-  hmac_key: "Y3a2OGZHXrWXAizuJ8jElfxr5j2AbE9V",
+  hmac_key: "vE2RQDJm/j61IxAgbDDRowm4Mc8U8WhARYYVuS0qkocABmdiJZoEIb+KNPeo6OEY",
   auth_header: "Authorization"
 
 # Configures the endpoint
@@ -24,6 +24,18 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# Configures Guardian
+config :guardian, Guardian,
+  allowed_algos: ["HS512"],
+  verify_module: Guardian.JWT,
+  ttl: { 1, :days },
+  allowed_drift: 2000,
+  verify_issuer: false,
+  secret_key: "IQ/Wc/HdH6s3HbLbMx73LNvOOtiu3IJE1G8phH2Nqxu409txMe+z0Ttw/RlCmpcE",
+  serializer: Bibliotheca.Auth.GuardianSerializer
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
+
+

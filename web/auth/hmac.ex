@@ -1,5 +1,10 @@
 defmodule Bibliotheca.Auth.HMAC do
+
   def hexdigest(data), do:
     :crypto.hmac(:sha256, Application.get_env(:bibliotheca, :hmac_key), data)
     |> Base.encode16
+
+  def verify_password(hashed, plain), do:
+    Plug.Crypto.secure_compare(hashed, hexdigest(plain))
+
 end

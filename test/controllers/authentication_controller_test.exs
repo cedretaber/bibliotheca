@@ -1,9 +1,7 @@
 defmodule Bibliotheca.AuthenticationControllerTest do
   use Bibliotheca.ConnCase, async: true
 
-  alias Bibliotheca.Auth.Token
-
-  import Bibliotheca.Plugs.Authentication, only: [header: 0]
+  import Bibliotheca.Plugs.Authentication, only: [realm: 0, header: 0]
 
   @password1 @password
   @user1 @user
@@ -17,8 +15,10 @@ defmodule Bibliotheca.AuthenticationControllerTest do
        |> post("/api/login", login_param)
 
       assert conn.status == 204
+
       [token] = get_resp_header(conn, header())
-      assert token == Token.lookup_token(@user1.id)
+      jwt = Guardian.Plug.current_token conn
+      assert token == "#{realm()} #{jwt}"
     end
 
     test "login with invalid email." do
@@ -39,20 +39,6 @@ defmodule Bibliotheca.AuthenticationControllerTest do
        |> post("/api/login", login_param)
 
       assert conn.status == 401
-    end
-  end
-
-  describe "logout" do
-    test "logout success.", %{conn: conn} do
-      [token] = get_req_header(conn, header())
-      assert Token.lookup_user_id(token) == @user1.id
-      assert Token.lookup_token(@user1.id) == token
-
-      conn = delete(conn, "/api/logout")
-
-      assert conn.status == 204
-      refute Token.lookup_user_id(token)
-      refute Token.lookup_token(@user1.id)
     end
   end
 end
