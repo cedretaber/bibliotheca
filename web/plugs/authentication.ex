@@ -12,7 +12,7 @@ defmodule Bibliotheca.Plugs.Authentication do
     with {_, token}                       <- header,
          user_id when not is_nil(user_id) <- Token.lookup_user_id token
     do
-      put_private(conn, __MODULE__, token)
+      put_private(conn, __MODULE__, user_id)
     else
       _ ->
         conn
@@ -22,8 +22,7 @@ defmodule Bibliotheca.Plugs.Authentication do
   end
 
   def current_user(conn) do
-    with token   when not is_nil(token)   <- conn.private[__MODULE__],
-         user_id when not is_nil(user_id) <- Token.lookup_user_id(token),
+    with user_id when not is_nil(user_id) <- conn.private[__MODULE__],
          user    when not is_nil(user)    <- Repo.get(User, user_id)
     do
       user

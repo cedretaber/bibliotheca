@@ -53,7 +53,7 @@ defmodule Bibliotheca.ConnCase do
 
         conn
         |> Plug.Conn.put_req_header(Bibliotheca.Plugs.Authentication.header(), token)
-        |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, token)
+        |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, user.id)
       end
     end
   end
@@ -76,7 +76,7 @@ defmodule Bibliotheca.ConnCase do
       Phoenix.ConnTest.build_conn()
       |> Plug.Conn.put_req_header("accept", "application/json")
       |> Plug.Conn.put_req_header(header, token)
-      |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, token)
+      |> Plug.Conn.put_private(Bibliotheca.Plugs.Authentication, @user.id)
 
     {:ok, conn: conn}
   end
