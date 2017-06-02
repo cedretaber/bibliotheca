@@ -4,8 +4,19 @@ otp_release:
 elixir:
   - 1.4.2
 
+env:
+  global:
+    - MIX_ENV=test
+
+cache:
+  directories:
+    - _build
+    - deps
+
 script:
-  - MIX_ENV=test mix do compile --warnings-as-errors, coveralls.json
+  - mix credo --strict
+  - mix dialyzer --halt-exit-status
+  - mix do compile --warnings-as-errors, coveralls.json
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
