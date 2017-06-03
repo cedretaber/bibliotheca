@@ -41,7 +41,9 @@ defmodule Bibliotheca.Mixfile do
      {:guardian, "~> 0.14"},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:excoveralls, "~> 0.6.3"}]
+     {:excoveralls, "~> 0.6.3"},
+     {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+     {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
