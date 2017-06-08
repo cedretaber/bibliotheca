@@ -1,8 +1,10 @@
 defmodule Bibliotheca.BookRemoved do
   use Bibliotheca.Web, :model
 
+  @primary_key false
+
   schema "books_removed" do
-    belongs_to :book, Bibliotheca.Book
+    belongs_to :book, Bibliotheca.Book, primary_key: true
 
     timestamps updated_at: false
   end
@@ -28,9 +30,9 @@ defmodule Bibliotheca.BookRemoved do
         select: {b, br}
 
     case Repo.one(query) do
-      nil -> {:error, "No such book."}
+      nil      -> {:error, "No such book."}
       {_, nil} -> false
-      _ -> true
+      _        -> true
     end
   end
 
@@ -38,19 +40,19 @@ defmodule Bibliotheca.BookRemoved do
     book_query =
       from b in Book,
         left_join: br in BookRemoved, on: b.id == br.book_id,
-        where: b.id == ^book_id and is_nil(br.id)
+        where: b.id == ^book_id and is_nil(br.book_id)
     query =
       from b in Book,
         inner_join: bl in BookLent, on: b.id == bl.book_id,
         left_join: bb in BookBacked, on: bl.id == bb.book_lent_id,
-        where: is_nil(bb.id)
+        where: is_nil(bb.book_lent_id)
     with book when not is_nil(book) <- Repo.one(book_query),
-         nil <- Repo.one(query)
+         nil                        <- Repo.one(query)
     do
       []
     else
       nil -> [book: "Invalid book id."]
-      _ -> [book: "The Book is still lent."]
+      _   -> [book: "The Book is still lent."]
     end
   end
 end

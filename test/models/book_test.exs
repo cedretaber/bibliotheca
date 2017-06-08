@@ -1,7 +1,7 @@
 defmodule Bibliotheca.BookTest do
   use Bibliotheca.ModelCase
 
-  alias Bibliotheca.{Repo, Author, Book, BookLent, BookRemoved, User}
+  alias Bibliotheca.{Repo, Account, Author, Book, BookLent, BookRemoved}
 
   @valid_attrs %{title: "title",
                  authors: ["someone", "another one"],
@@ -161,10 +161,10 @@ defmodule Bibliotheca.BookTest do
       book = %Book{id: 1, title: "book"}
       Repo.insert! book
 
-      user = %User{id: 1, email: "user@example.com", password_digest: "password", auth_code: "NORMAL"}
-      Repo.insert! user
+      account = %Account{id: 1, name: "account"}
+      Repo.insert! account
 
-      {:ok, _} = BookLent.lend(user.id, book.id)
+      {:ok, _} = BookLent.lend(account.id, book.id)
 
       {:error, changeset} = Book.remove(book.id)
 

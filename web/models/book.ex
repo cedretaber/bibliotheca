@@ -63,8 +63,8 @@ defmodule Bibliotheca.Book do
 
   defp present_books_query, do:
     from b in __MODULE__,
-      left_join: r in BookRemoved, on: b.id == r.book_id,
-      where: is_nil(r.id),
+      left_join: br in BookRemoved, on: b.id == br.book_id,
+      where: is_nil(br.book_id),
       order_by: [asc: b.id],
       preload: [:authors],
       select: b

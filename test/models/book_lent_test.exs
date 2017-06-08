@@ -1,19 +1,19 @@
 defmodule Bibliotheca.BookLentTest do
   use Bibliotheca.ModelCase
 
-  alias Bibliotheca.{BookLent, BookRemoved, Book, User}
+  alias Bibliotheca.{Account, Book, BookLent, BookRemoved}
 
-  @user %User{id: 1, email: "user1@example.com", password_digest: "xxxx", auth_code: "NORMAL"}
-  @user2 %User{ @user | id: 2, email: "user2@example.com" }
+  @account %Account{id: 1, name: "account1"}
+  @account2 %Account{@account | id: 2, name: "account2"}
 
   @book %Book{id: 1, title: "book"}
 
-  @valid_attrs %{book_id: @book.id, user_id: @user.id}
+  @valid_attrs %{book_id: @book.id, account_id: @account.id}
   @invalid_attrs %{}
 
   describe "changeset" do
     test "changeset with valid attributes" do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
       changeset = BookLent.changeset(@valid_attrs)
@@ -28,122 +28,122 @@ defmodule Bibliotheca.BookLentTest do
 
   describe "lend" do
     test "lending book which nobody has lent." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@account.id)
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
 
-      assert BookLent.lending_user(@book.id) == Repo.get(User, @user.id)
+      assert BookLent.lending_account(@book.id) == Repo.get(Account, @account.id)
     end
 
     test "lending book which had been lent." do
 
-      Repo.insert! @user
-      Repo.insert! @user2
+      Repo.insert! @account
+      Repo.insert! @account2
       Repo.insert! @book
 
       # 誰も借りてない
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
 
-      # user2が借りる
-      assert match? {:ok, _}, BookLent.lend(@user2.id, @book.id)
+      # account2が借りる
+      assert match? {:ok, _}, BookLent.lend(@account2.id, @book.id)
 
-      # user2が借りている
-      assert BookLent.lending_user(@book.id) == Repo.get(User, @user2.id)
+      # account2が借りている
+      assert BookLent.lending_account(@book.id) == Repo.get(Account, @account2.id)
 
       # 返す
-      assert match? {:ok, _}, BookLent.back(@user2.id, @book.id)
+      assert match? {:ok, _}, BookLent.back(@account2.id, @book.id)
 
       # 誰も借りていない
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
 
-      # user1が借りる
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
+      # account1が借りる
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
 
-      # user1が借りている
-      assert BookLent.lending_user(@book.id) == Repo.get(User, @user.id)
+      # account1が借りている
+      assert BookLent.lending_account(@book.id) == Repo.get(Account, @account.id)
     end
 
     test "lending book which is lent now." do
-      Repo.insert! @user
-      Repo.insert! @user2
+      Repo.insert! @account
+      Repo.insert! @account2
       Repo.insert! @book
 
       # 誰も借りてない
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
 
-      # user2が借りる
-      assert match? {:ok, _}, BookLent.lend(@user2.id, @book.id)
+      # account2が借りる
+      assert match? {:ok, _}, BookLent.lend(@account2.id, @book.id)
 
-      # user2が借りている
-      assert BookLent.lending_user(@book.id) == Repo.get(User, @user2.id)
+      # account2が借りている
+      assert BookLent.lending_account(@book.id) == Repo.get(Account, @account2.id)
 
-      # user1が借りようとする
-      {:error, changeset} = BookLent.lend(@user.id, @book.id)
+      # account1が借りようとする
+      {:error, changeset} = BookLent.lend(@account.id, @book.id)
       assert {:book, "The book is already lent."} in extract_errors(changeset)
     end
 
     test "lending nonexistent book." do
-      Repo.insert! @user
+      Repo.insert! @account
 
-      {:error, changeset} = BookLent.lend(@user.id, 42)
+      {:error, changeset} = BookLent.lend(@account.id, 42)
       assert {:book, "Invalid book id."} in extract_errors(changeset)
     end
 
     test "lending book which was removed." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
       Repo.insert! BookRemoved.changeset(%{book_id: @book.id})
 
-      {:error, changeset} = BookLent.lend(@user.id, @book.id)
+      {:error, changeset} = BookLent.lend(@account.id, @book.id)
       assert {:book, "Invalid book id."} in extract_errors(changeset)
     end
 
-    test "lending book by nonexistent user." do
+    test "lending book by nonexistent account." do
       Repo.insert! @book
 
       {:error, changeset} = BookLent.lend(42, @book.id)
-      assert {:user, "Invalid user id."} in extract_errors(changeset)
+      assert {:account, "Invalid account id."} in extract_errors(changeset)
     end
   end
 
   describe "back" do
     test "back a lending book." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
 
-      assert BookLent.lending_user(@book.id) == Repo.get(User, @user.id)
+      assert BookLent.lending_account(@book.id) == Repo.get(Account, @account.id)
 
-      assert match? {:ok, _}, BookLent.back(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.back(@account.id, @book.id)
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
     end
 
     test "back a book which is not lent." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
 
-      {:error, changeset} = BookLent.back(@user.id, @book.id)
+      {:error, changeset} = BookLent.back(@account.id, @book.id)
       assert {:book_lent, "Book not lent."} in extract_errors(changeset)
     end
 
     test "back nonexistent book." do
-      Repo.insert! @user
+      Repo.insert! @account
 
-      {:error, changeset} = BookLent.back(@user.id, 42)
+      {:error, changeset} = BookLent.back(@account.id, 42)
       assert {:book_lent, "Book not lent."} in extract_errors(changeset)
     end
 
-    test "back a book by nonexistent user." do
+    test "back a book by nonexistent account." do
       Repo.insert! @book
 
       {:error, changeset} = BookLent.back(42, @book.id)
@@ -152,12 +152,12 @@ defmodule Bibliotheca.BookLentTest do
   end
 
   describe "lending_books" do
-    test "user who has lent no book." do
-      assert BookLent.lending_books(@user.id) == []
+    test "account who has lent no book." do
+      assert BookLent.lending_books(@account.id) == []
     end
 
-    test "user who is lending some books." do
-      Repo.insert! @user
+    test "account who is lending some books." do
+      Repo.insert! @account
 
       book1 = @book
       book2 = %Book{ book1 | id: 2, title: "book2" }
@@ -167,16 +167,16 @@ defmodule Bibliotheca.BookLentTest do
 
       for book <- books do
         Repo.insert! book
-        assert match? {:ok, _}, BookLent.lend(@user.id, book.id)
+        assert match? {:ok, _}, BookLent.lend(@account.id, book.id)
       end
 
       extract_id = fn books -> for book <- books, do: book.id end
 
-      assert extract_id.(BookLent.lending_books @user.id) == extract_id.(books)
+      assert extract_id.(BookLent.lending_books @account.id) == extract_id.(books)
     end
 
-    test "user who has lent and backed some books." do
-      Repo.insert! @user
+    test "account who has lent and backed some books." do
+      Repo.insert! @account
 
       book1 = @book
       book2 = %Book{ book1 | id: 2, title: "book2" }
@@ -184,53 +184,53 @@ defmodule Bibliotheca.BookLentTest do
 
       for book <- [book1, book2, book3] do
         Repo.insert! book
-        assert match? {:ok, _}, BookLent.lend(@user.id, book.id)
+        assert match? {:ok, _}, BookLent.lend(@account.id, book.id)
       end
 
-      assert match? {:ok, _}, BookLent.back(@user.id, book2.id)
+      assert match? {:ok, _}, BookLent.back(@account.id, book2.id)
 
       extract_id = fn books -> for book <- books, do: book.id end
 
-      assert extract_id.(BookLent.lending_books @user.id) == extract_id.([book1, book3])
+      assert extract_id.(BookLent.lending_books @account.id) == extract_id.([book1, book3])
     end
   end
 
-  describe "lending_user" do
+  describe "lending_account" do
     test "book which nobody has lent." do
       Repo.insert! @book
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
     end
 
     test "book which is lent." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
 
-      assert BookLent.lending_user(@book.id).id == @user.id
+      assert BookLent.lending_account(@book.id).id == @account.id
     end
 
     test "book which has lent." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
-      assert match? {:ok, _}, BookLent.back(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
+      assert match? {:ok, _}, BookLent.back(@account.id, @book.id)
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
     end
 
     test "book which was removed." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
-      assert match? {:ok, _}, BookLent.back(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
+      assert match? {:ok, _}, BookLent.back(@account.id, @book.id)
 
       Repo.insert! BookRemoved.changeset(%{book_id: @book.id})
 
-      refute BookLent.lending_user(@book.id)
+      refute BookLent.lending_account(@book.id)
     end
   end
 
@@ -242,11 +242,11 @@ defmodule Bibliotheca.BookLentTest do
     end
 
     test "book which has been lent." do
-      Repo.insert! @user
+      Repo.insert! @account
       Repo.insert! @book
 
-      assert match? {:ok, _}, BookLent.lend(@user.id, @book.id)
-      assert match? {:ok, _}, BookLent.back(@user.id, @book.id)
+      assert match? {:ok, _}, BookLent.lend(@account.id, @book.id)
+      assert match? {:ok, _}, BookLent.back(@account.id, @book.id)
 
       assert BookLent.lentable_book(@book.id) == :ok
     end
@@ -263,15 +263,15 @@ defmodule Bibliotheca.BookLentTest do
     end
   end
 
-  describe "lentable_user" do
-    test "valid user." do
-      Repo.insert! @user
+  describe "lentable_account" do
+    test "valid account." do
+      Repo.insert! @account
 
-      assert BookLent.lentable_user(@user.id) == :ok
+      assert BookLent.lentable_account(@account.id) == :ok
     end
 
-    test "nonexistent user." do
-      assert BookLent.lentable_user(42) == {:error, "Invalid user id."}
+    test "nonexistent account." do
+      assert BookLent.lentable_account(42) == {:error, "Invalid account id."}
     end
   end
 end

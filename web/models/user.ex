@@ -5,7 +5,8 @@ defmodule Bibliotheca.User do
     field :email, :string
     field :password_digest, :string
     field :auth_code, :string
-    field :deleted_at, :naive_datetime
+
+    many_to_many :accounts, Bibliotheca.Account, join_through: "user_accounts"
 
     timestamps()
   end
@@ -26,11 +27,6 @@ defmodule Bibliotheca.User do
     struct
     |> cast(params, [:password_digest])
     |> validate_required([:password_digest])
-
-  def changeset(struct, %{deleted_at: _} = params), do:
-    struct
-    |> cast(params, [:deleted_at])
-    |> validate_required([:deleted_at])
 
   def changeset(struct, params), do:
     struct
@@ -59,10 +55,18 @@ defmodule Bibliotheca.User do
   def update_password(id, password), do:
     (user = find id) && Repo.update(changeset user, intern_password hash_password %{ "password" => password })
 
-  def delete(id), do:
-    (user = find id) && Repo.update(changeset user, %{ deleted_at: NaiveDateTime.utc_now })
+  def delete(id) do
+    with user when not is_nil(user) <- find(id),
+         {:ok, _} = ret             <- Repo.delete(user)
+    do
+      ret
+    else
+      nil   -> {:error, nil}
+      error -> error
+    end
+  end
 
-  defp user_query, do: from u in __MODULE__, where: is_nil(u.deleted_at), order_by: [asc: u.id]
+  defp user_query, do: from u in __MODULE__, order_by: [asc: u.id]
 
   defp hash_password(params) do
     password_digest =

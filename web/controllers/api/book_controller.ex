@@ -64,9 +64,8 @@ defmodule Bibliotheca.Api.BookController do
     |> put_status(400)
     |> json(%{ errors: extract_errors(changeset)})
 
-  defp book_not_found(conn) do
+  defp book_not_found(conn), do:
     conn
     |> put_status(404)
     |> json(%{ error: @book_not_found })
-  end
 end
