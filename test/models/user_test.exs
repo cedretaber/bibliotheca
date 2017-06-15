@@ -222,7 +222,7 @@ defmodule Bibliotheca.UserTest do
     test "try delete nonexists user." do
       id = 42
 
-      assert match? {:error, _}, User.delete(id)
+      refute User.delete(id)
     end
   end
 end

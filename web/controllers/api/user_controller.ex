@@ -15,13 +15,13 @@ defmodule Bibliotheca.Api.UserController do
     render conn, :index, users: User.all
 
   def create(conn, %{"user" => user_params}), do:
-    show_user(conn, User.create(user_params))
+    show_user conn, User.create(user_params)
 
-  def show conn, %{"id" => id} do
-    case User.find id do
-      nil  -> user_not_found(conn)
-      user -> render conn, :show, user: user
-    end
+  def show(conn, %{"id" => id}) do
+    show_user conn, (case User.find id do
+      nil -> nil
+      user -> {:ok, user}
+    end)
   end
 
   def update(conn, %{"id" => id, "user" => user_params}), do:

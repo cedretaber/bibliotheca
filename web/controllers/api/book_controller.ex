@@ -28,12 +28,6 @@ defmodule Bibliotheca.Api.BookController do
   def create(conn, %{"book" => book_param}), do:
     show_book conn, Book.create(book_param)
 
-  def lend(conn, %{"account_id" => account_id, "book_id" => book_id}), do:
-    resp_no_contents conn, BookLent.lend(account_id, book_id)
-
-  def back(conn, %{"account_id" => account_id, "book_id" => book_id}), do:
-    resp_no_contents conn, BookLent.back(account_id, book_id)
-
   def remove(conn, %{"id" => id}), do:
     resp_no_contents conn, Book.remove(id)
 

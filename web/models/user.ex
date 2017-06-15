@@ -61,7 +61,6 @@ defmodule Bibliotheca.User do
     do
       ret
     else
-      nil   -> {:error, nil}
       error -> error
     end
   end
