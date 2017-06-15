@@ -66,9 +66,11 @@ defmodule Bibliotheca.Api.AccountController do
   end
 
   defp auth_user_account(conn, _), do:
-    if (user = current_user conn) &&
-        user.auth_code == "ADMIN" ||
-        UserAccount.own?(user.id, conn.params["id"]),
+    if check_user_account(current_user(conn), conn.params["id"]),
       do: conn,
       else: conn |> send_resp(403, "Forbidden") |> halt
+
+  defp check_user_account(nil, _), do: false
+  defp check_user_account(user, account_id), do:
+    user.auth_code == "ADMIN" || UserAccount.own?(user.id, account_id)
 end

@@ -4,7 +4,6 @@ defmodule Bibliotheca.BookControllerTest do
   alias Bibliotheca.{Repo, Account, Book, BookLent, User}
   alias Bibliotheca.Api.BookView
 
-  @user1 @user
   @user2 %User{id: 2, email: "user2@example.com", password_digest: "password", auth_code: "NORMAL"}
 
   @account1 %Account{id: 1, name: "account1"}
@@ -81,7 +80,7 @@ defmodule Bibliotheca.BookControllerTest do
       assert match? {:ok, _}, BookLent.back(@account1.id, book3.id)
       assert match? {:ok, _}, BookLent.lend(@account2.id, book3.id)
 
-      books = for book <- [book1, book3], do: Repo.get!(Book, book.id) |> Repo.preload(:authors)
+      for book <- [book1, book3], do: Repo.get!(Book, book.id) |> Repo.preload(:authors)
 
       conn1 = get(conn, "/api/books/#{@book1.id}/lending")
       assert json_response(conn1, 200) == (%{account_id: @account1.id} |> jsonise())

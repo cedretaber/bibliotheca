@@ -49,10 +49,10 @@ defmodule Bibliotheca.UserAccount do
   end
 
   defp find_account(account_id), do:
-    if (account = Repo.get Account, account_id), do: {:ok, account}, else: {:error, :account}
+    if account = Repo.get(Account, account_id), do: {:ok, account}, else: {:error, :account}
 
   defp find_user(user_id), do:
-    if (user = Repo.get User, user_id), do: {:ok, user}, else: {:error, :user}
+    if user = Repo.get(User, user_id), do: {:ok, user}, else: {:error, :user}
 
   defp error_changeset(key, message), do:
     %__MODULE__{} |> cast(%{}, []) |> add_error(key, message)

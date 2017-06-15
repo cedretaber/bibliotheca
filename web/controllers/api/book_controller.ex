@@ -2,7 +2,6 @@ defmodule Bibliotheca.Api.BookController do
   use Bibliotheca.Web, :controller
 
   import Bibliotheca.Helpers.ErrorExtractor
-  import Bibliotheca.Plugs.Authentication, only: [current_user: 1]
   import Bibliotheca.Plugs.CaseConverter, only: [conv_case: 2]
 
   alias Bibliotheca.{Book, BookLent}

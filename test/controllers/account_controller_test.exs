@@ -9,8 +9,8 @@ defmodule Bibliotheca.AccountControllerTest do
   @account2 %Account{id: 2, name: "account2"}
 
   @book1 %Book{id: 1, title: "book1", description: "awesome book."}
-  @book2 %Book{id: 2, title: "book2", description: "normal book."}
-  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
+#  @book2 %Book{id: 2, title: "book2", description: "normal book."}
+#  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
 
   describe "lend/2" do
     test "lent a book by normal user.", %{conn: conn} do
