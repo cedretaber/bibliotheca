@@ -1,8 +1,6 @@
 defmodule Bibliotheca.Book do
   use Bibliotheca.Web, :model
 
-  alias Bibliotheca.{Repo, Book, BookRemoved, Author}
-
   schema "books" do
     field :title, :string
     field :description, :string
@@ -12,10 +10,12 @@ defmodule Bibliotheca.Book do
     field :page_count, :integer
     field :published_at, :date
 
-    many_to_many :authors, Bibliotheca.Author, join_through: "book_authors"
+    many_to_many :authors, Bibliotheca.Author, join_through: Bibliotheca.BookAuthor
 
     timestamps updated_at: false
   end
+
+  alias Bibliotheca.{Repo, Book, BookRemoved, Author}
 
   @fields ~w(title description publisher image_url isbn page_count published_at)a
 

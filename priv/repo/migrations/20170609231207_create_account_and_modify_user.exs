@@ -17,6 +17,8 @@ defmodule Bibliotheca.Repo.Migrations.CreateAccountAndModifyUser do
     create table(:user_accounts, primary_key: false) do
       add :user_id, references(:users, on_delete: :delete_all), null: false, primary_key: true
       add :account_id, references(:accounts, on_delete: :delete_all), null: false, primary_key: true
+
+      timestamps updated_at: false
     end
 
     drop index(:books_lent, [:user_id])
@@ -45,6 +47,8 @@ defmodule Bibliotheca.Repo.Migrations.CreateAccountAndModifyUser do
     create table(:book_authors, primary_key: false) do
       add :book_id, references(:books, on_delete: :delete_all), null: false, primary_key: true
       add :author_id, references(:authors, on_delete: :delete_all), null: false, primary_key: true
+
+      timestamps updated_at: false
     end
   end
 end

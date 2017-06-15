@@ -5,7 +5,7 @@ defmodule Bibliotheca.Account do
     field :name, :string
     field :deleted_at, :naive_datetime
 
-    many_to_many :users, Bibliotheca.User, join_through: "user_accounts"
+    many_to_many :users, Bibliotheca.User, join_through: Bibliotheca.UserAccount
 
     timestamps()
   end

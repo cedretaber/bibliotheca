@@ -6,7 +6,7 @@ defmodule Bibliotheca.User do
     field :password_digest, :string
     field :auth_code, :string
 
-    many_to_many :accounts, Bibliotheca.Account, join_through: "user_accounts"
+    many_to_many :accounts, Bibliotheca.Account, join_through: Bibliotheca.UserAccount
 
     timestamps()
   end

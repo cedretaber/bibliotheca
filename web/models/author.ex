@@ -6,7 +6,7 @@ defmodule Bibliotheca.Author do
   schema "authors" do
     field :name, :string
 
-    many_to_many :books, Bibliotheca.Book, join_through: "book_authors"
+    many_to_many :books, Bibliotheca.Book, join_through: Bibliotheca.BookAuthor
 
     timestamps updated_at: false
   end
