@@ -2,14 +2,16 @@ defmodule Bibliotheca.Api.AccountController do
   use Bibliotheca.Web, :controller
 
   import Bibliotheca.Helpers.ErrorExtractor
+  import Bibliotheca.Plugs.Authentication, only: [current_user: 1]
   import Bibliotheca.Plugs.CaseConverter, only: [conv_case: 2]
 
-  alias Bibliotheca.Account
+  alias Bibliotheca.{Account, BookLent, User, UserAccount}
 
   @account_not_found "Account Not Found"
 
   plug :scrub_params, "account" when action in [:create, :update]
   plug :conv_case when action in [:create, :update]
+  plug :auth_user_account when action in [:lend, :back]
 
   def index(conn, _param), do:
     render conn, :index, accounts: Account.all
@@ -18,17 +20,23 @@ defmodule Bibliotheca.Api.AccountController do
     show_account(conn, User.create(account_params))
 
   def show conn, %{"id" => id} do
-    case User.find id do
-      nil     -> account_not_found(conn)
-      account -> show_account(conn, account)
-    end
+    show_account conn, (case Account.find id do
+      nil -> nil
+      account -> {:ok, account}
+    end)
   end
 
   def update(conn, %{"id" => id, "account" => account_params}), do:
-    show_account conn, User.update(id, account_params)
+    show_account conn, Account.update(id, account_params)
 
   def delete(conn, %{"id" => id}), do:
-    resp_no_content conn, User.delete(id)
+    resp_no_content conn, Account.delete(id)
+
+  def lend(conn, %{"id" => id, "book_id" => book_id}), do:
+    resp_no_content conn, BookLent.lend(id, book_id)
+
+  def back(conn, %{"id" => id, "book_id" => book_id}), do:
+    resp_no_content conn, BookLent.back(id, book_id)
 
   defp show_account(conn, ret_param) do
     case ret_param do
@@ -56,4 +64,11 @@ defmodule Bibliotheca.Api.AccountController do
     |> put_status(:not_found)
     |> json(%{ error: @account_not_found })
   end
+
+  defp auth_user_account(conn, _), do:
+    if (user = current_user conn) &&
+        user.auth_code == "ADMIN" ||
+        UserAccount.own?(user.id, conn.params["id"]),
+      do: conn,
+      else: conn |> send_resp(403, "Forbidden") |> halt
 end
