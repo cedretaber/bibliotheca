@@ -17,11 +17,11 @@ defmodule Bibliotheca.Api.BookController do
   def index(conn, _param), do:
     index conn, %{"q" => ""}
 
-  def lending(conn, %{"book_id" => book_id}), do:
-    json conn, %{account_id: BookLent.lending_account book_id}
+  def lending(conn, %{"id" => id}), do:
+    json conn, %{account_id: (account = BookLent.lending_account id) && account.id}
 
   def show(conn, %{"id" => id}) do
-    book = Book.find(id)
+    book = Book.find id
     show_book conn, (if is_nil(book), do: nil, else: {:ok, book})
   end
 

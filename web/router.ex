@@ -42,7 +42,11 @@ defmodule Bibliotheca.Router do
 
      resources "/accounts", AccountController, only: [:index, :createm, :show, :update, :delete]
 
-     get "/books/lending", BookController, :lending
+     scope "/books" do
+       post   "/", BookController, :create
+       get    "/:id/lending/", BookController, :lending
+       delete "/:id", BookController, :remove
+     end
    end
 
    scope "/api", Bibliotheca.Api do
