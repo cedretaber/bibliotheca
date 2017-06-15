@@ -26,7 +26,7 @@ defmodule Bibliotheca.Account do
     end
   end
 
-  def all(), do:
+  def all, do:
     Repo.all(from a in account_query(), preload: [:users])
 
   def create(param, users \\ []), do:
@@ -48,6 +48,6 @@ defmodule Bibliotheca.Account do
   def delete(id), do:
     (account = find id) && Repo.update(changeset account, %{deleted_at: NaiveDateTime.utc_now})
 
-  defp account_query(), do:
+  defp account_query, do:
     from a in __MODULE__, where: is_nil(a.deleted_at), order_by: [asc: a.id]
 end
