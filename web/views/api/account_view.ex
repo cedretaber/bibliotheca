@@ -9,5 +9,7 @@ defmodule Bibliotheca.Api.AccountView do
 
   def render("account.json", %{account: account}), do:
     %{id: account.id,
-      name: account.name}
+      name: account.name,
+      insertedAt: account.inserted_at,
+      updatedAt: account.updated_at}
 end
