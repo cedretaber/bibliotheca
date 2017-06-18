@@ -30,11 +30,6 @@ defmodule Bibliotheca.UserTest do
       changeset = User.changeset(%User{}, %{ password_digest: "hogehogefugafuga" })
       assert changeset.valid?
     end
-
-    test "changeset(deleted_at) with valid attributes" do
-      changeset = User.changeset(%User{}, %{ deleted_at: NaiveDateTime.utc_now })
-      assert changeset.valid?
-    end
   end
 
   alias Bibliotheca.Repo
@@ -48,16 +43,16 @@ defmodule Bibliotheca.UserTest do
                    inserted_at: ~N[2015-04-01 12:00:00],
                    updated_at: ~N[2015-04-01 12:00:00]}
       users = [
-        %User{ user | email: "user1@example.com", password_digest: "user1", auth_code: "ADMIN" },
-        %User{ user | id: 2, email: "user2@example.com", password_digest: "user2", auth_code: "NORMAL" },
-        %User{ user | id: 3, email: "user3@example.com", password_digest: "user3", auth_code: "NORMAL", deleted_at: ~N[2015-04-01 13:00:00] },
-        %User{ user | id: 4, email: "user4@example.com", password_digest: "user4", auth_code: "NORMAL" }
+        %User{user | email: "user1@example.com", password_digest: "user1", auth_code: "ADMIN"},
+        %User{user | id: 2, email: "user2@example.com", password_digest: "user2", auth_code: "NORMAL"},
+        %User{user | id: 3, email: "user3@example.com", password_digest: "user3", auth_code: "NORMAL"},
+        %User{user | id: 4, email: "user4@example.com", password_digest: "user4", auth_code: "NORMAL"}
       ]
 
       Enum.each users, fn user -> Repo.insert! user end
 
       User.all()
-      |> Enum.zip(Enum.filter users, fn %User{deleted_at: nil} -> true; _ -> false end)
+      |> Enum.zip(users)
       |> Enum.each(fn {ret, exp} ->
         assert ret.email == exp.email
         assert ret.password_digest == exp.password_digest
@@ -102,13 +97,8 @@ defmodule Bibliotheca.UserTest do
       assert User.find(id) != nil
     end
 
-    test "find with deleted user" do
-      datetime = ~N[2015-04-01 13:00:00]
-      email = "user@example.com"
-
-      Repo.insert! %User{ email: email, password_digest: "user", auth_code: "ADMIN", inserted_at: datetime, updated_at: datetime, deleted_at: datetime }
-      id = Repo.get_by(User, email: email).id
-
+    test "find with nonexists user" do
+      id = 42
       assert User.find(id) == nil
     end
 
@@ -121,12 +111,8 @@ defmodule Bibliotheca.UserTest do
       assert User.find_by_email(email) != nil
     end
 
-    test "find_by_email with deleted user" do
-      datetime = ~N[2015-04-01 13:00:00]
-      email = "user@example.com"
-
-      Repo.insert! %User{ email: email, password_digest: "user", auth_code: "ADMIN", inserted_at: datetime, updated_at: datetime, deleted_at: datetime }
-
+    test "find_by_email with nonexists user" do
+      email = "nonexists@example.com"
       assert User.find_by_email(email) == nil
     end
   end
@@ -153,7 +139,7 @@ defmodule Bibliotheca.UserTest do
 
       user = Repo.get!(User, id)
       assert user.email == email
-      assert user.password_digest == HMAC.hexdigest(password)
+      assert HMAC.verify_password(user.password_digest, password)
       assert user.auth_code == auth_code
       assert user.inserted_at == now
       refute user.updated_at == now
@@ -227,10 +213,16 @@ defmodule Bibliotheca.UserTest do
       assert Repo.get(User, id) != nil
       assert User.find(id) != nil
 
-      User.delete id
+      assert match? {:ok, _}, User.delete(id)
 
-      assert Repo.get(User, id) != nil
+      assert Repo.get(User, id) == nil
       assert User.find(id) == nil
+    end
+
+    test "try delete nonexists user." do
+      id = 42
+
+      refute User.delete(id)
     end
   end
 end

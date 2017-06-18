@@ -8,5 +8,9 @@ defmodule Bibliotheca.Api.UserView do
     %{ user: render_one(user, __MODULE__, "user.json") }
 
   def render("user.json", %{user: user}), do:
-    %{ id: user.id, email: user.email, authCode: user.auth_code, insertedAt: user.inserted_at, updatedAt: user.updated_at }
+    %{id: user.id,
+      email: user.email,
+      authCode: user.auth_code,
+      insertedAt: user.inserted_at,
+      updatedAt: user.updated_at}
 end

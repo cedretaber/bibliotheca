@@ -12,5 +12,6 @@ defmodule Bibliotheca.Plugs.Authentication do
 
   def current_user(conn), do: Guardian.Plug.current_resource(conn)
 
+  # credo:disable-for-next-line Credo.Check.Refactor.PipeChainStart
   def header, do: Application.get_env(:bibliotheca, :auth_header) |> String.downcase()
 end

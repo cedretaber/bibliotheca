@@ -2,7 +2,9 @@ defmodule Bibliotheca.Plugs.CaseConverter do
   def conv_case(conn, _), do: %{conn | params: conv_map conn.params}
 
   defp conv_map(map) do
-    Map.keys(map) |> Enum.reduce(map, fn key, params ->
+    map
+    |> Map.keys
+    |> Enum.reduce(map, fn key, params ->
       case {Macro.underscore(key), params[key]} do
         {^key, value} when is_map value    -> %{params | key => conv_map value}
         {^key, _}                          -> params

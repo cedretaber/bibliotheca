@@ -27,7 +27,7 @@ defmodule Bibliotheca.UserControllerTest do
 
       conn = get(conn, "/api/users/")
 
-      [user1, user2, user3] = (json_response(conn, 200)["users"] |> Enum.sort_by(&(&1["id"])))
+      [user1, user2, user3] = (json_response(conn, 200)["users"] |> Enum.sort_by(& &1["id"]))
       email1 = @user1.email
 
       assert match? %{ "id" => 1, "email" => ^email1, "authCode" => "ADMIN", "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ }, user1
@@ -51,7 +51,7 @@ defmodule Bibliotheca.UserControllerTest do
       new_user = Repo.get! User, id
 
       assert new_user.email == new_email
-      assert new_user.password_digest == HMAC.hexdigest(new_password)
+      assert HMAC.verify_password(new_user.password_digest, new_password)
       assert new_user.auth_code == new_auth_code
     end
 
@@ -80,7 +80,7 @@ defmodule Bibliotheca.UserControllerTest do
       new_user = Repo.get! User, id
 
       assert new_user.email == new_email
-      assert new_user.password_digest == HMAC.hexdigest(new_password)
+      assert HMAC.verify_password(new_user.password_digest, new_password)
       assert new_user.auth_code == new_auth_code
     end
   end
@@ -119,7 +119,7 @@ defmodule Bibliotheca.UserControllerTest do
       new_user = Repo.get User, @user1.id
 
       assert new_user.email == new_email
-      assert new_user.password_digest == HMAC.hexdigest(new_password)
+      assert HMAC.verify_password(new_user.password_digest, new_password)
       assert new_user.auth_code == new_auth_code
     end
 
@@ -159,7 +159,7 @@ defmodule Bibliotheca.UserControllerTest do
       new_user = Repo.get User, @user1.id
 
       assert new_user.email == new_email
-      assert new_user.password_digest == HMAC.hexdigest(new_password)
+      assert HMAC.verify_password(new_user.password_digest, new_password)
       assert new_user.auth_code == new_auth_code
     end
   end
