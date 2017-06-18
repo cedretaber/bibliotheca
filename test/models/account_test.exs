@@ -139,4 +139,74 @@ defmodule Bibliotheca.AccountTest do
       assert match? {:error, _}, Account.create(@valid_param, [user])
     end
   end
+
+  describe "find" do
+    test "find an account." do
+      Repo.insert! @account
+
+      account = Account.find @account.id
+
+      assert @account.id == account.id
+      assert @account.name == account.name
+    end
+
+    test "try to find nonexistent account." do
+      refute Account.find(42)
+    end
+  end
+
+  describe "find_by_name" do
+    test "find an account." do
+      Repo.insert! @account
+
+      account = Account.find_by_name @account.name
+
+      assert @account.id == account.id
+      assert @account.name == account.name
+    end
+
+    test "try to find nonexistent account." do
+      refute Account.find_by_name("no such account")
+    end
+  end
+
+  describe "update" do
+    test "update an account successfully." do
+      Repo.insert! @account
+
+      new_name = "new name"
+      param = %{ "name" => new_name }
+
+      assert {:ok, account} = Account.update(@account.id, param)
+      assert account.name == new_name
+
+      account = Repo.get Account, @account.id
+      assert account.name == new_name
+    end
+
+    test "try to update nonexistent account." do
+      new_name = "new name"
+      param = %{ "name" => new_name }
+
+      refute Account.update(42, param)
+    end
+  end
+
+  describe "delete" do
+    test "delete an account." do
+      Repo.insert! @account
+
+      assert match? {:ok, _}, Account.delete(@account.id)
+
+      account = Repo.get Account, @account.id
+      assert account
+      assert account.deleted_at
+      refute Account.find(@account.id)
+      refute Account.find_by_name(@account.name)
+    end
+
+    test "try to delete nonexistent account." do
+      refute Account.delete(42)
+    end
+  end
 end
