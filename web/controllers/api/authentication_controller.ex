@@ -14,7 +14,7 @@ defmodule Bibliotheca.Api.AuthenticationController do
       nil ->
         login(conn, nil)
       user ->
-        if user.password_digest == HMAC.hexdigest(password) do
+        if HMAC.verify_password(user.password_digest, password) do
           conn   = Guardian.Plug.api_sign_in conn, user
           jwt    = Guardian.Plug.current_token conn
 

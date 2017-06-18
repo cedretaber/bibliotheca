@@ -139,7 +139,7 @@ defmodule Bibliotheca.UserTest do
 
       user = Repo.get!(User, id)
       assert user.email == email
-      assert user.password_digest == HMAC.hexdigest(password)
+      assert HMAC.verify_password(user.password_digest, password)
       assert user.auth_code == auth_code
       assert user.inserted_at == now
       refute user.updated_at == now

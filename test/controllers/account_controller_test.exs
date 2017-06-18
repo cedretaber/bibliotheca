@@ -12,6 +12,21 @@ defmodule Bibliotheca.AccountControllerTest do
 #  @book2 %Book{id: 2, title: "book2", description: "normal book."}
 #  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
 
+  describe "index/2" do
+  end
+
+  describe "create/2" do
+  end
+
+  describe "show/2" do
+  end
+
+  describe "update/2" do
+  end
+
+  describe "delete/2" do
+  end
+
   describe "lend/2" do
     test "lent a book by normal user.", %{conn: conn} do
       Repo.insert! @user2
