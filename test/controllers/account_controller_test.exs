@@ -13,18 +13,114 @@ defmodule Bibliotheca.AccountControllerTest do
 #  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
 
   describe "index/2" do
+    test "by normal user", %{conn: conn} do
+      Repo.insert! @user2
+
+      conn = conn
+        |> login_user(@user2)
+        |> get("/api/accounts/")
+
+      assert conn.status == 403
+    end
+
+    test "all users", %{conn: conn} do
+      account3 = %Account{ id: 3, name: "account3" }
+      accounts = [@account1, @account2, account3]
+
+      for account <- accounts, do: Repo.insert! account
+
+      conn = get(conn, "/api/accounts/")
+
+      (json_response(conn, 200)["accounts"])
+      |> Enum.sort_by(& &1["id"])
+      |> Enum.zip(accounts)
+      |> Enum.each(fn {ret, exp} ->
+        assert ret["id"] == exp.id
+        assert ret["name"] == exp.name
+      end)
+    end
   end
 
   describe "create/2" do
+    test "create new user successfully.", %{conn: conn} do
+      new_account_name = "new account"
+      param = %{ name: new_account_name }
+
+      conn = post conn, "/api/accounts/", %{ account: param }
+
+      assert get_in(json_response(conn, 200), ["account", "name"]) == new_account_name
+      assert Repo.get_by(Account, name: new_account_name)
+    end
+
+    test "create with invalid param.", %{conn: conn} do
+      param = %{}
+
+      conn = post conn, "/api/accounts/", %{ account: param }
+
+      assert conn.status == 400
+    end
   end
 
   describe "show/2" do
+    test "show an account.", %{conn: conn} do
+      Repo.insert! @account1
+
+      conn = get conn, "api/accounts/#{@account1.id}"
+
+      account = json_response(conn, 200)["account"]
+      assert account["id"] == @account1.id
+      assert account["name"] == @account1.name
+    end
+
+    test "try to show nonexistent user.", %{conn: conn} do
+      conn = get conn, "api/accounts/42"
+
+      assert conn.status == 404
+    end
   end
 
   describe "update/2" do
+    test "update an account successfully.", %{conn: conn} do
+      Repo.insert! @account1
+
+      new_name = "new name"
+      param = %{ name: new_name }
+
+      conn = put conn, "api/accounts/#{@account1.id}", %{ account: param }
+
+      assert get_in(json_response(conn, 200), ["account", "name"]) == new_name
+      assert Repo.get(Account, @account1.id).name == new_name
+    end
+
+    test "try to update nonexistent account.", %{conn: conn} do
+      new_name = "new name"
+      param = %{ name: new_name }
+
+      conn = put conn, "api/accounts/42", %{ account: param }
+
+      assert conn.status == 404
+    end
   end
 
   describe "delete/2" do
+    test "delete an account successfully.", %{conn: conn} do
+      Repo.insert! @account1
+
+      conn = delete conn, "api/accounts/#{@account1.id}"
+
+      assert conn.status == 204
+
+      account = Repo.get(Account, @account1.id)
+      assert account
+      assert account.deleted_at
+      refute Account.find(@account1.id)
+    end
+
+    test "try to delete nonexistent account.", %{conn: conn} do
+      conn = delete conn, "api/accounts/42"
+
+      assert conn.status == 404
+    end
   end
 
   describe "lend/2" do

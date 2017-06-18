@@ -40,7 +40,7 @@ defmodule Bibliotheca.Router do
        delete "/:id/accounts/:account_id", UserController, :remove_account
      end
 
-     resources "/accounts", AccountController, only: [:index, :createm, :show, :update, :delete]
+     resources "/accounts", AccountController, only: [:index, :create, :show, :update, :delete]
 
      scope "/books" do
        post   "/", BookController, :create

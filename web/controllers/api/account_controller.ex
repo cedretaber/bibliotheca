@@ -5,7 +5,7 @@ defmodule Bibliotheca.Api.AccountController do
   import Bibliotheca.Plugs.Authentication, only: [current_user: 1]
   import Bibliotheca.Plugs.CaseConverter, only: [conv_case: 2]
 
-  alias Bibliotheca.{Account, BookLent, User, UserAccount}
+  alias Bibliotheca.{Account, BookLent, UserAccount}
 
   @account_not_found "Account Not Found"
 
@@ -17,7 +17,7 @@ defmodule Bibliotheca.Api.AccountController do
     render conn, :index, accounts: Account.all
 
   def create(conn, %{"account" => account_params}), do:
-    show_account(conn, User.create(account_params))
+    show_account conn, Account.create(account_params)
 
   def show conn, %{"id" => id} do
     show_account conn, (case Account.find id do

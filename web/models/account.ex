@@ -15,15 +15,13 @@ defmodule Bibliotheca.Account do
   def changeset(struct, params, users \\ []) do
     changeset =
       struct
-      |> cast(params, [:name])
+      |> cast(params, [:name, :deleted_at])
       |> validate_required([:name])
       |> unique_constraint(:name)
 
-    if Enum.empty?(users) do
-      changeset
-    else
-      put_assoc changeset, :users, users
-    end
+    if Enum.empty?(users),
+      do: changeset,
+      else: put_assoc(changeset, :users, users)
   end
 
   def all, do:
@@ -40,7 +38,7 @@ defmodule Bibliotheca.Account do
 
   def update(id, param) do
     case find(id) do
-      nil     -> {:error, "Account Not Found."}
+      nil     -> nil
       account -> Repo.update(changeset account, param)
     end
   end

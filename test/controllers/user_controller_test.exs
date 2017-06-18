@@ -27,7 +27,7 @@ defmodule Bibliotheca.UserControllerTest do
 
       conn = get(conn, "/api/users/")
 
-      [user1, user2, user3] = (json_response(conn, 200)["users"] |> Enum.sort_by(&(&1["id"])))
+      [user1, user2, user3] = (json_response(conn, 200)["users"] |> Enum.sort_by(& &1["id"]))
       email1 = @user1.email
 
       assert match? %{ "id" => 1, "email" => ^email1, "authCode" => "ADMIN", "insertedAt" => "2015-04-01T12:00:00.000000", "updatedAt" => _ }, user1
