@@ -6,7 +6,7 @@ defmodule Bibliotheca.Plugs.Authorization do
     case {level, current_user(conn).auth_code} do
       {:admin, "ADMIN"} -> conn
       {:admin, _} -> reject(conn)
-      {_, _} -> conn
+      _ -> conn
     end
   end
 

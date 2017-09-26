@@ -22,6 +22,7 @@ defmodule Bibliotheca.Router do
     plug :authorize, [:normal]
   end
 
+  # 認証無し
   scope "/api", Bibliotheca.Api do
      pipe_through :api
 
@@ -29,39 +30,41 @@ defmodule Bibliotheca.Router do
     get  "/ping",  ApplicationController, :ping
   end
 
-   scope "/api", Bibliotheca.Api do
-     pipe_through :api
-     pipe_through :auth
-     pipe_through :admin
+  # 認証あり（管理者）
+  scope "/api", Bibliotheca.Api do
+    pipe_through :api
+    pipe_through :auth
+    pipe_through :admin
 
-     resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
-     scope "/users" do
-       get    "/:id/accounts/:account_id", UserController, :add_account
-       delete "/:id/accounts/:account_id", UserController, :remove_account
-     end
+    resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
+    scope "/users" do
+      get    "/:id/accounts/:account_id", UserController, :add_account
+      delete "/:id/accounts/:account_id", UserController, :remove_account
+    end
 
-     resources "/accounts", AccountController, only: [:index, :create, :show, :update, :delete]
+    resources "/accounts", AccountController, only: [:index, :create, :show, :update, :delete]
 
-     scope "/books" do
-       post   "/", BookController, :create
-       get    "/:id/lending/", BookController, :lending
-       delete "/:id", BookController, :remove
-     end
-   end
+    scope "/books" do
+      post   "/",             BookController, :create
+      get    "/:id/lending/", BookController, :lending
+      delete "/:id",          BookController, :remove
+    end
+  end
 
-   scope "/api", Bibliotheca.Api do
-     pipe_through :api
-     pipe_through :auth
-     pipe_through :normal
+  # 認証あり（一般）
+  scope "/api", Bibliotheca.Api do
+    pipe_through :api
+    pipe_through :auth
+    pipe_through :normal
 
-     scope "/accounts" do
-       get    "/:id/books/:book_id", AccountController, :lend
-       delete "/:id/books/:book_id", AccountController, :back
-     end
+    scope "/accounts" do
+      get    "/:id/books/:book_id", AccountController, :lend
+      delete "/:id/books/:book_id", AccountController, :back
+    end
 
-     scope "/books" do
-       get "/", BookController, :index
-       get "/:id", BookController, :show
-     end
-   end
+    scope "/books" do
+      get "/",    BookController, :index
+      get "/:id", BookController, :show
+    end
+  end
 end
