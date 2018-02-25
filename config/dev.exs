@@ -13,7 +13,6 @@ config :bibliotheca, Bibliotheca.Endpoint,
   check_origin: false,
   watchers: []
 
-
 # Watch static and templates for browser reloading.
 config :bibliotheca, Bibliotheca.Endpoint,
   live_reload: [

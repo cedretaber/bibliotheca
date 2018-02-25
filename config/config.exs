@@ -16,8 +16,7 @@ config :bibliotheca, Bibliotheca.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "DOHc2JpuB1KhpumkGM+E6/7YmDW2ET7UshTC3Z9YUO0/zyMUY2zsI9RnPmdH98p3",
   render_errors: [view: Bibliotheca.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Bibliotheca.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Bibliotheca.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -28,7 +27,7 @@ config :logger, :console,
 config :guardian, Guardian,
   allowed_algos: ["HS512"],
   verify_module: Guardian.JWT,
-  ttl: { 1, :days },
+  ttl: {1, :days},
   allowed_drift: 2000,
   verify_issuer: false,
   secret_key: "IQ/Wc/HdH6s3HbLbMx73LNvOOtiu3IJE1G8phH2Nqxu409txMe+z0Ttw/RlCmpcE",
@@ -36,6 +35,4 @@ config :guardian, Guardian,
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env}.exs"
-
-
+import_config "#{Mix.env()}.exs"

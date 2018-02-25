@@ -1,8 +1,8 @@
 language: elixir
 otp_release:
-  - 19.1
+  - 20.0
 elixir:
-  - 1.4.2
+  - 1.6.1
 
 env:
   global:
@@ -17,6 +17,7 @@ script:
   - mix credo --strict
 #  - mix dialyzer --halt-exit-status
   - mix do compile --warnings-as-errors, coveralls.json
+  - mix format --check-formatted
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
