@@ -3,20 +3,26 @@ defmodule Bibliotheca.AccountControllerTest do
 
   alias Bibliotheca.{Repo, Account, Book, BookLent, User, UserAccount}
 
-  @user2 %User{id: 2, email: "user2@example.com", password_digest: "password", auth_code: "NORMAL"}
+  @user2 %User{
+    id: 2,
+    email: "user2@example.com",
+    password_digest: "password",
+    auth_code: "NORMAL"
+  }
 
   @account1 %Account{id: 1, name: "account1"}
   @account2 %Account{id: 2, name: "account2"}
 
   @book1 %Book{id: 1, title: "book1", description: "awesome book."}
-#  @book2 %Book{id: 2, title: "book2", description: "normal book."}
-#  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
+  #  @book2 %Book{id: 2, title: "book2", description: "normal book."}
+  #  @book3 %Book{id: 3, title: "book3", description: "awesome cool book."}
 
   describe "index/2" do
     test "by normal user", %{conn: conn} do
-      Repo.insert! @user2
+      Repo.insert!(@user2)
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> get("/api/accounts/")
 
@@ -24,14 +30,14 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "all users", %{conn: conn} do
-      account3 = %Account{ id: 3, name: "account3" }
+      account3 = %Account{id: 3, name: "account3"}
       accounts = [@account1, @account2, account3]
 
-      for account <- accounts, do: Repo.insert! account
+      for account <- accounts, do: Repo.insert!(account)
 
       conn = get(conn, "/api/accounts/")
 
-      (json_response(conn, 200)["accounts"])
+      json_response(conn, 200)["accounts"]
       |> Enum.sort_by(& &1["id"])
       |> Enum.zip(accounts)
       |> Enum.each(fn {ret, exp} ->
@@ -44,9 +50,9 @@ defmodule Bibliotheca.AccountControllerTest do
   describe "create/2" do
     test "create new user successfully.", %{conn: conn} do
       new_account_name = "new account"
-      param = %{ name: new_account_name }
+      param = %{name: new_account_name}
 
-      conn = post conn, "/api/accounts/", %{ account: param }
+      conn = post(conn, "/api/accounts/", %{account: param})
 
       assert get_in(json_response(conn, 200), ["account", "name"]) == new_account_name
       assert Repo.get_by(Account, name: new_account_name)
@@ -55,7 +61,7 @@ defmodule Bibliotheca.AccountControllerTest do
     test "create with invalid param.", %{conn: conn} do
       param = %{}
 
-      conn = post conn, "/api/accounts/", %{ account: param }
+      conn = post(conn, "/api/accounts/", %{account: param})
 
       assert conn.status == 400
     end
@@ -63,9 +69,9 @@ defmodule Bibliotheca.AccountControllerTest do
 
   describe "show/2" do
     test "show an account.", %{conn: conn} do
-      Repo.insert! @account1
+      Repo.insert!(@account1)
 
-      conn = get conn, "api/accounts/#{@account1.id}"
+      conn = get(conn, "api/accounts/#{@account1.id}")
 
       account = json_response(conn, 200)["account"]
       assert account["id"] == @account1.id
@@ -73,7 +79,7 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "try to show nonexistent user.", %{conn: conn} do
-      conn = get conn, "api/accounts/42"
+      conn = get(conn, "api/accounts/42")
 
       assert conn.status == 404
     end
@@ -81,12 +87,12 @@ defmodule Bibliotheca.AccountControllerTest do
 
   describe "update/2" do
     test "update an account successfully.", %{conn: conn} do
-      Repo.insert! @account1
+      Repo.insert!(@account1)
 
       new_name = "new name"
-      param = %{ name: new_name }
+      param = %{name: new_name}
 
-      conn = put conn, "api/accounts/#{@account1.id}", %{ account: param }
+      conn = put(conn, "api/accounts/#{@account1.id}", %{account: param})
 
       assert get_in(json_response(conn, 200), ["account", "name"]) == new_name
       assert Repo.get(Account, @account1.id).name == new_name
@@ -94,9 +100,9 @@ defmodule Bibliotheca.AccountControllerTest do
 
     test "try to update nonexistent account.", %{conn: conn} do
       new_name = "new name"
-      param = %{ name: new_name }
+      param = %{name: new_name}
 
-      conn = put conn, "api/accounts/42", %{ account: param }
+      conn = put(conn, "api/accounts/42", %{account: param})
 
       assert conn.status == 404
     end
@@ -104,9 +110,9 @@ defmodule Bibliotheca.AccountControllerTest do
 
   describe "delete/2" do
     test "delete an account successfully.", %{conn: conn} do
-      Repo.insert! @account1
+      Repo.insert!(@account1)
 
-      conn = delete conn, "api/accounts/#{@account1.id}"
+      conn = delete(conn, "api/accounts/#{@account1.id}")
 
       assert conn.status == 204
 
@@ -117,7 +123,7 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "try to delete nonexistent account.", %{conn: conn} do
-      conn = delete conn, "api/accounts/42"
+      conn = delete(conn, "api/accounts/42")
 
       assert conn.status == 404
     end
@@ -125,14 +131,15 @@ defmodule Bibliotheca.AccountControllerTest do
 
   describe "lend/2" do
     test "lent a book by normal user.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
-      Repo.insert! @book1
+      Repo.insert!(@book1)
       assert BookLent.lentable_book(@book1.id) == :ok
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> get("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
@@ -141,40 +148,45 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "lent an nonexistent book by normal user.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
       book_id = 42
       assert match?({:error, _}, BookLent.lentable_book(book_id))
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> get("/api/accounts/#{@account1.id}/books/#{book_id}")
 
-      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "Invalid book id.", details: [] } }] } |> jsonise())
+      assert json_response(conn, 400) ==
+               %{errors: [%{book: %{message: "Invalid book id.", details: []}}]} |> jsonise()
     end
 
     test "lent a book which is already lent by normal user.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      Repo.insert! @account2
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      Repo.insert!(@account2)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
-      Repo.insert! @book1
-      assert match? {:ok, _}, BookLent.lend(@account2.id, @book1.id)
+      Repo.insert!(@book1)
+      assert match?({:ok, _}, BookLent.lend(@account2.id, @book1.id))
       assert BookLent.lending_account(@book1.id).id == @account2.id
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> get("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
-      assert json_response(conn, 400) == (%{ errors: [%{ book: %{ message: "The book is already lent.", details: [] } }] } |> jsonise())
+      assert json_response(conn, 400) ==
+               %{errors: [%{book: %{message: "The book is already lent.", details: []}}]}
+               |> jsonise()
     end
 
     test "an admin user make non related user to lent a book.", %{conn: conn} do
-      Repo.insert! @account1
-      Repo.insert! @book1
+      Repo.insert!(@account1)
+      Repo.insert!(@book1)
       assert BookLent.lentable_book(@book1.id) == :ok
 
       conn = get(conn, "/api/accounts/#{@account1.id}/books/#{@book1.id}")
@@ -184,12 +196,13 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "a normal user can't' make non related account to lend a book.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      Repo.insert! @book1
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      Repo.insert!(@book1)
       assert BookLent.lentable_book(@book1.id) == :ok
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> get("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
@@ -200,15 +213,16 @@ defmodule Bibliotheca.AccountControllerTest do
 
   describe "back/2" do
     test "back a book lent by normal user.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
-      Repo.insert! @book1
+      Repo.insert!(@book1)
       assert {:ok, _} = BookLent.lend(@account1.id, @book1.id)
       assert BookLent.lending_account(@book1.id).id == @account1.id
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> delete("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
@@ -218,43 +232,45 @@ defmodule Bibliotheca.AccountControllerTest do
     end
 
     test "back a book which is not lent.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
-      Repo.insert! @book1
+      Repo.insert!(@book1)
       refute BookLent.lending_account(@book1.id)
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> delete("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
       assert json_response(conn, 400) ==
-        (%{ errors: [%{ book_lent: %{ message: "Book not lent.", details: [] } }] } |> jsonise())
+               %{errors: [%{book_lent: %{message: "Book not lent.", details: []}}]} |> jsonise()
     end
 
     test "back a book which is lent by another account.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      Repo.insert! @account2
-      assert match? {:ok, _}, UserAccount.create(@user2.id, @account1.id)
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      Repo.insert!(@account2)
+      assert match?({:ok, _}, UserAccount.create(@user2.id, @account1.id))
 
-      Repo.insert! @book1
-      assert match? {:ok, _}, BookLent.lend(@account2.id, @book1.id)
+      Repo.insert!(@book1)
+      assert match?({:ok, _}, BookLent.lend(@account2.id, @book1.id))
       assert BookLent.lending_account(@book1.id).id == @account2.id
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> delete("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 
       assert json_response(conn, 400) ==
-        (%{ errors: [%{ book_lent: %{ message: "Book not lent.", details: [] } }] } |> jsonise())
+               %{errors: [%{book_lent: %{message: "Book not lent.", details: []}}]} |> jsonise()
     end
 
     test "an admin user make non related account to back a book.", %{conn: conn} do
-      Repo.insert! @account1
-      Repo.insert! @book1
-      assert match? {:ok, _}, BookLent.lend(@account1.id, @book1.id)
+      Repo.insert!(@account1)
+      Repo.insert!(@book1)
+      assert match?({:ok, _}, BookLent.lend(@account1.id, @book1.id))
       assert BookLent.lending_account(@book1.id).id == @account1.id
 
       conn = delete(conn, "/api/accounts/#{@account1.id}/books/#{@book1.id}")
@@ -264,14 +280,15 @@ defmodule Bibliotheca.AccountControllerTest do
       assert BookLent.lentable_book(@book1.id) == :ok
     end
 
-    test "a normal user can't' make non related account to back a book.", %{conn: conn} do
-      Repo.insert! @user2
-      Repo.insert! @account1
-      Repo.insert! @book1
-      assert match? {:ok, _}, BookLent.lend(@account1.id, @book1.id)
+    test "a normal user can't make non related account to back a book.", %{conn: conn} do
+      Repo.insert!(@user2)
+      Repo.insert!(@account1)
+      Repo.insert!(@book1)
+      assert match?({:ok, _}, BookLent.lend(@account1.id, @book1.id))
       assert BookLent.lending_account(@book1.id).id == @account1.id
 
-      conn = conn
+      conn =
+        conn
         |> login_user(@user2)
         |> delete("/api/accounts/#{@account1.id}/books/#{@book1.id}")
 

@@ -6,7 +6,7 @@ defmodule Bibliotheca.Plugs.AuthorizationTest do
   alias Bibliotheca.User
 
   @user1 @user
-  @user2 %User{ @user1 | id: 2, email: "user2@example.com", auth_code: "NORMAL" }
+  @user2 %User{@user1 | id: 2, email: "user2@example.com", auth_code: "NORMAL"}
 
   test "access admin resources by admin user.", %{conn: conn} do
     conn = authorize(conn, [:admin])
@@ -15,9 +15,10 @@ defmodule Bibliotheca.Plugs.AuthorizationTest do
   end
 
   test "access admin resources by normal user.", %{conn: conn} do
-    Repo.insert! @user2
+    Repo.insert!(@user2)
 
-    conn = conn
+    conn =
+      conn
       |> login_user(@user2)
       |> authorize([:admin])
 
@@ -25,12 +26,13 @@ defmodule Bibliotheca.Plugs.AuthorizationTest do
   end
 
   test "access normal resources.", %{conn: conn} do
-    Repo.insert! @user2
+    Repo.insert!(@user2)
 
     conn_admin = authorize(conn, [:normal])
     refute conn_admin.halted
 
-    conn_normal = conn
+    conn_normal =
+      conn
       |> login_user(@user2)
       |> authorize([:normal])
 

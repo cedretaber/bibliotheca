@@ -4,13 +4,20 @@ defmodule Bibliotheca.AccountTest do
   alias Bibliotheca.{Account, User}
 
   @valid_attr %{name: "account1"}
-  @account %Account{id: 1, name: "account1", inserted_at: ~N[2015-04-01 12:00:00], updated_at: ~N[2015-04-01 12:00:00]}
-  @user %User{id: 1,
-              email: "test@example.com",
-              password_digest: "hogehogefufgafuga",
-              auth_code: "ADMIN",
-              inserted_at: ~N[2015-04-01 12:00:00],
-              updated_at: ~N[2015-04-01 12:00:00]}
+  @account %Account{
+    id: 1,
+    name: "account1",
+    inserted_at: ~N[2015-04-01 12:00:00],
+    updated_at: ~N[2015-04-01 12:00:00]
+  }
+  @user %User{
+    id: 1,
+    email: "test@example.com",
+    password_digest: "hogehogefufgafuga",
+    auth_code: "ADMIN",
+    inserted_at: ~N[2015-04-01 12:00:00],
+    updated_at: ~N[2015-04-01 12:00:00]
+  }
 
   describe "changeset" do
     test "changeset with valid attributes." do
@@ -31,7 +38,6 @@ defmodule Bibliotheca.AccountTest do
     end
   end
 
-
   describe "all" do
     test "query all accounts." do
       account1 = @account
@@ -40,7 +46,7 @@ defmodule Bibliotheca.AccountTest do
       list = [account1, account2, account3]
 
       list
-      |> Enum.each(fn account -> Repo.insert! account end)
+      |> Enum.each(fn account -> Repo.insert!(account) end)
 
       Account.all()
       |> Enum.zip(list)
@@ -48,13 +54,19 @@ defmodule Bibliotheca.AccountTest do
     end
 
     test "query all undeleted accounts." do
-      account1 = %Account{id: 1, name: "account1", inserted_at: ~N[2015-04-01 12:00:00], updated_at: ~N[2015-04-01 12:00:00]}
+      account1 = %Account{
+        id: 1,
+        name: "account1",
+        inserted_at: ~N[2015-04-01 12:00:00],
+        updated_at: ~N[2015-04-01 12:00:00]
+      }
+
       account2 = %Account{account1 | id: 2, name: "account2", deleted_at: ~N[2016-04-01 12:00:00]}
       account3 = %Account{account1 | id: 3, name: "account3"}
       list = [account1, account2, account3]
 
       list
-      |> Enum.each(fn account -> Repo.insert! cast(account, %{}, []) end)
+      |> Enum.each(fn account -> Repo.insert!(cast(account, %{}, [])) end)
 
       list = [account1, account3]
 
@@ -73,12 +85,15 @@ defmodule Bibliotheca.AccountTest do
       user3 = %User{user1 | id: 3, email: "test3@example.com"}
 
       [user1, user2, user3]
-      |> Enum.each(fn user -> Repo.insert! user end)
+      |> Enum.each(fn user -> Repo.insert!(user) end)
 
-      account1 = %Account{id: 1,
-                          name: "account1",
-                          inserted_at: ~N[2015-04-01 12:00:00],
-                          updated_at: ~N[2015-04-01 12:00:00]}
+      account1 = %Account{
+        id: 1,
+        name: "account1",
+        inserted_at: ~N[2015-04-01 12:00:00],
+        updated_at: ~N[2015-04-01 12:00:00]
+      }
+
       account2 = %Account{account1 | id: 2, name: "account2"}
       account3 = %Account{account1 | id: 3, name: "account3"}
       list = [account1, account2, account3]
@@ -88,8 +103,11 @@ defmodule Bibliotheca.AccountTest do
       list
       |> Enum.zip(user_assoc)
       |> Enum.each(fn {account, users} ->
-        changeset = account |> change |> put_assoc(:users, users |> Enum.map(fn id -> Repo.get(User, id) end))
-        Repo.insert! changeset
+        changeset =
+          account |> change
+          |> put_assoc(:users, users |> Enum.map(fn id -> Repo.get(User, id) end))
+
+        Repo.insert!(changeset)
       end)
 
       Account.all()
@@ -98,6 +116,7 @@ defmodule Bibliotheca.AccountTest do
       |> Enum.each(fn {{ret, exp}, users} ->
         assert ret.name == exp.name
         assert length(ret.users) == length(users)
+
         ret.users
         |> Enum.zip(users)
         |> Enum.each(fn {ret, exp_id} -> assert ret.id == exp_id end)
@@ -116,7 +135,7 @@ defmodule Bibliotheca.AccountTest do
     end
 
     test "create an account with user." do
-      Repo.insert! @user
+      Repo.insert!(@user)
       users = [Repo.get(User, @user.id)]
 
       refute Repo.get_by(Account, name: @valid_param[:name])
@@ -128,7 +147,7 @@ defmodule Bibliotheca.AccountTest do
     test "creation failed with invalid params." do
       param = %{}
 
-      assert match? {:error, _}, Account.create(param)
+      assert match?({:error, _}, Account.create(param))
     end
 
     test "creation failed with ivalid users." do
@@ -136,15 +155,15 @@ defmodule Bibliotheca.AccountTest do
 
       Account.create(@valid_param, [user])
 
-      assert match? {:error, _}, Account.create(@valid_param, [user])
+      assert match?({:error, _}, Account.create(@valid_param, [user]))
     end
   end
 
   describe "find" do
     test "find an account." do
-      Repo.insert! @account
+      Repo.insert!(@account)
 
-      account = Account.find @account.id
+      account = Account.find(@account.id)
 
       assert @account.id == account.id
       assert @account.name == account.name
@@ -157,9 +176,9 @@ defmodule Bibliotheca.AccountTest do
 
   describe "find_by_name" do
     test "find an account." do
-      Repo.insert! @account
+      Repo.insert!(@account)
 
-      account = Account.find_by_name @account.name
+      account = Account.find_by_name(@account.name)
 
       assert @account.id == account.id
       assert @account.name == account.name
@@ -172,21 +191,21 @@ defmodule Bibliotheca.AccountTest do
 
   describe "update" do
     test "update an account successfully." do
-      Repo.insert! @account
+      Repo.insert!(@account)
 
       new_name = "new name"
-      param = %{ "name" => new_name }
+      param = %{"name" => new_name}
 
       assert {:ok, account} = Account.update(@account.id, param)
       assert account.name == new_name
 
-      account = Repo.get Account, @account.id
+      account = Repo.get(Account, @account.id)
       assert account.name == new_name
     end
 
     test "try to update nonexistent account." do
       new_name = "new name"
-      param = %{ "name" => new_name }
+      param = %{"name" => new_name}
 
       refute Account.update(42, param)
     end
@@ -194,11 +213,11 @@ defmodule Bibliotheca.AccountTest do
 
   describe "delete" do
     test "delete an account." do
-      Repo.insert! @account
+      Repo.insert!(@account)
 
-      assert match? {:ok, _}, Account.delete(@account.id)
+      assert match?({:ok, _}, Account.delete(@account.id))
 
-      account = Repo.get Account, @account.id
+      account = Repo.get(Account, @account.id)
       assert account
       assert account.deleted_at
       refute Account.find(@account.id)

@@ -10,7 +10,7 @@ defmodule Bibliotheca.BookRemovedTest do
 
   describe "changeset" do
     test "changeset with valid attributes" do
-      Repo.insert @book
+      Repo.insert(@book)
 
       changeset = BookRemoved.changeset(@valid_attrs)
       assert changeset.valid?

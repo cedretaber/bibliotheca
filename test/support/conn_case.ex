@@ -16,12 +16,14 @@ defmodule Bibliotheca.ConnCase do
   use ExUnit.CaseTemplate
 
   @password "hogehogefufgafuga"
-  @user %Bibliotheca.User{id: 1,
-                          email: "test@example.com",
-                          password_digest: Bibliotheca.Auth.HMAC.hexdigest(@password),
-                          auth_code: "ADMIN",
-                          inserted_at: ~N[2015-04-01 12:00:00],
-                          updated_at: ~N[2015-04-01 12:00:00]}
+  @user %Bibliotheca.User{
+    id: 1,
+    email: "test@example.com",
+    password_digest: Bibliotheca.Auth.HMAC.hexdigest(@password),
+    auth_code: "ADMIN",
+    inserted_at: ~N[2015-04-01 12:00:00],
+    updated_at: ~N[2015-04-01 12:00:00]
+  }
 
   def get_password, do: @password
   def get_user, do: @user
@@ -44,15 +46,14 @@ defmodule Bibliotheca.ConnCase do
       @password Bibliotheca.ConnCase.get_password()
       @user Bibliotheca.ConnCase.get_user()
 
-      defp jsonise(data), do:
-        data |> Poison.encode!() |> Poison.decode!()
+      defp jsonise(data), do: data |> Poison.encode!() |> Poison.decode!()
 
       defp login_user(conn, user) do
-        conn = Guardian.Plug.api_sign_in conn, user
+        conn = Guardian.Plug.api_sign_in(conn, user)
 
         header = Bibliotheca.Plugs.Authentication.header()
-        realm  = Bibliotheca.Plugs.Authentication.realm()
-        jwt    = Guardian.Plug.current_token conn
+        realm = Bibliotheca.Plugs.Authentication.realm()
+        jwt = Guardian.Plug.current_token(conn)
 
         Plug.Conn.put_resp_header(conn, header, "#{realm} #{jwt}")
       end
@@ -66,7 +67,7 @@ defmodule Bibliotheca.ConnCase do
       Ecto.Adapters.SQL.Sandbox.mode(Bibliotheca.Repo, {:shared, self()})
     end
 
-    Bibliotheca.Repo.insert! @user
+    Bibliotheca.Repo.insert!(@user)
     Ecto.Adapters.SQL.query!(Bibliotheca.Repo, "SELECT setval('users_id_seq', 99)")
 
     conn =
@@ -74,10 +75,11 @@ defmodule Bibliotheca.ConnCase do
       |> Guardian.Plug.api_sign_in(@user)
 
     header = Bibliotheca.Plugs.Authentication.header()
-    realm  = Bibliotheca.Plugs.Authentication.realm()
-    jwt    = Guardian.Plug.current_token conn
+    realm = Bibliotheca.Plugs.Authentication.realm()
+    jwt = Guardian.Plug.current_token(conn)
 
-    conn = conn
+    conn =
+      conn
       |> Plug.Conn.put_req_header("accept", "application/json")
       |> Plug.Conn.put_req_header(header, "#{realm} #{jwt}")
 

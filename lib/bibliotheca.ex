@@ -11,7 +11,7 @@ defmodule Bibliotheca do
       # Start the Ecto repository
       supervisor(Bibliotheca.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(Bibliotheca.Endpoint, []),
+      supervisor(Bibliotheca.Endpoint, [])
       # Start your own worker by calling: Bibliotheca.Worker.start_link(arg1, arg2, arg3)
       # worker(Bibliotheca.Worker, [arg1, arg2, arg3]),
     ]

@@ -63,8 +63,9 @@ defmodule Bibliotheca.ModelCase do
     |> Enum.flat_map(fn {key, errors} -> for msg <- errors, do: {key, msg} end)
   end
 
-  def extract_errors(changeset), do:
-    changeset
-    |> Ecto.Changeset.traverse_errors(&Bibliotheca.ErrorHelpers.translate_error/1)
-    |> Enum.flat_map(fn {key, errors} -> for msg <- errors, do: {key, msg} end)
+  def extract_errors(changeset),
+    do:
+      changeset
+      |> Ecto.Changeset.traverse_errors(&Bibliotheca.ErrorHelpers.translate_error/1)
+      |> Enum.flat_map(fn {key, errors} -> for msg <- errors, do: {key, msg} end)
 end

@@ -21,7 +21,7 @@ defmodule Bibliotheca.AuthorTest do
   describe "find_or_create" do
     test "can find and return current." do
       author = %Author{id: 1, name: "author"}
-      Repo.insert! author
+      Repo.insert!(author)
 
       {:ok, res} = Author.find_or_create(author.name)
       assert res.id == author.id

@@ -1,6 +1,6 @@
 defmodule Bibliotheca.Plugs.CaseConverter do
   @moduledoc """
-  connのparamsの、camelCaseのキーの値をsnale_caseでも参照できるようにする。
+  connのparamsの、camelCaseのキーの値をsnake_caseでも参照できるようにする。
   """
 
   def conv_case(conn, _), do: %{conn | params: conv_map conn.params}

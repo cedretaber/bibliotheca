@@ -12,9 +12,9 @@ defmodule Bibliotheca.BookBackedTest do
 
   describe "changeset" do
     test "changeset with valid attributes" do
-      Repo.insert @account
-      Repo.insert @book
-      Repo.insert @book_lent
+      Repo.insert(@account)
+      Repo.insert(@book)
+      Repo.insert(@book_lent)
 
       changeset = BookBacked.changeset(@valid_attrs)
       assert changeset.valid?
@@ -28,27 +28,27 @@ defmodule Bibliotheca.BookBackedTest do
 
   describe "back" do
     test "back valid book lending." do
-      Repo.insert @account
-      Repo.insert @book
-      Repo.insert @book_lent
+      Repo.insert(@account)
+      Repo.insert(@book)
+      Repo.insert(@book_lent)
 
       {:ok, book_backed} = BookBacked.back(@account.id, @book.id)
       assert book_backed.book_lent_id == @book_lent.id
     end
 
     test "back invalid book lending." do
-      Repo.insert @account
-      Repo.insert @book
-      Repo.insert @book_lent
+      Repo.insert(@account)
+      Repo.insert(@book)
+      Repo.insert(@book_lent)
 
       {:error, changeset} = BookBacked.back(@account.id, 42)
       assert {:book_lent, "Book not lent."} in extract_errors(changeset)
     end
 
     test "back by invalid account." do
-      Repo.insert @account
-      Repo.insert @book
-      Repo.insert @book_lent
+      Repo.insert(@account)
+      Repo.insert(@book)
+      Repo.insert(@book_lent)
 
       {:error, changeset} = BookBacked.back(42, @book.id)
       assert {:book_lent, "Book not lent."} in extract_errors(changeset)
