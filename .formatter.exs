@@ -1,5 +1,5 @@
 [
-  inputs: ["mix.exs", "{config,lib,test}/**/*.{ex,exs}"],
+  inputs: ["mix.exs", "{config,lib,web,test}/**/*.{ex,exs}"],
   locals_without_parens: [
     # Formatter tests
     assert_format: 2,
@@ -12,6 +12,14 @@
 
     # Mix tests
     in_fixture: 2,
-    in_tmp: 2
+    in_tmp: 2,
+
+    # Routing
+    plug: :*,
+    pipe_through: :*,
+    get: :*,
+    post: :*,
+    delete: :*,
+    resources: :*
   ]
 ]

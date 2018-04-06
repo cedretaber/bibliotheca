@@ -104,7 +104,8 @@ defmodule Bibliotheca.AccountTest do
       |> Enum.zip(user_assoc)
       |> Enum.each(fn {account, users} ->
         changeset =
-          account |> change
+          account
+          |> change
           |> put_assoc(:users, users |> Enum.map(fn id -> Repo.get(User, id) end))
 
         Repo.insert!(changeset)

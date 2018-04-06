@@ -24,10 +24,10 @@ defmodule Bibliotheca.Router do
 
   # 認証無し
   scope "/api", Bibliotheca.Api do
-     pipe_through :api
+    pipe_through :api
 
     post "/login", AuthenticationController, :login
-    get  "/ping",  ApplicationController, :ping
+    get "/ping", ApplicationController, :ping
   end
 
   # 認証あり（管理者）
@@ -37,17 +37,18 @@ defmodule Bibliotheca.Router do
     pipe_through :admin
 
     resources "/users", UserController, only: [:index, :create, :show, :update, :delete]
+
     scope "/users" do
-      get    "/:id/accounts/:account_id", UserController, :add_account
+      get "/:id/accounts/:account_id", UserController, :add_account
       delete "/:id/accounts/:account_id", UserController, :remove_account
     end
 
     resources "/accounts", AccountController, only: [:index, :create, :show, :update, :delete]
 
     scope "/books" do
-      post   "/",             BookController, :create
-      get    "/:id/lending/", BookController, :lending
-      delete "/:id",          BookController, :remove
+      post "/", BookController, :create
+      get "/:id/lending/", BookController, :lending
+      delete "/:id", BookController, :remove
     end
   end
 
@@ -58,12 +59,12 @@ defmodule Bibliotheca.Router do
     pipe_through :normal
 
     scope "/accounts" do
-      get    "/:id/books/:book_id", AccountController, :lend
+      get "/:id/books/:book_id", AccountController, :lend
       delete "/:id/books/:book_id", AccountController, :back
     end
 
     scope "/books" do
-      get "/",    BookController, :index
+      get "/", BookController, :index
       get "/:id", BookController, :show
     end
   end

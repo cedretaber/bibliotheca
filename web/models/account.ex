@@ -2,10 +2,10 @@ defmodule Bibliotheca.Account do
   use Bibliotheca.Web, :model
 
   schema "accounts" do
-    field :name, :string
-    field :deleted_at, :naive_datetime
+    field(:name, :string)
+    field(:deleted_at, :naive_datetime)
 
-    many_to_many :users, Bibliotheca.User, join_through: Bibliotheca.UserAccount
+    many_to_many(:users, Bibliotheca.User, join_through: Bibliotheca.UserAccount)
 
     timestamps()
   end
@@ -24,28 +24,27 @@ defmodule Bibliotheca.Account do
       else: put_assoc(changeset, :users, users)
   end
 
-  def all, do:
-    Repo.all(from a in account_query(), preload: [:users])
+  def all, do: Repo.all(from(a in account_query(), preload: [:users]))
 
-  def create(param, users \\ []), do:
-    Repo.insert(changeset %__MODULE__{}, param, users)
+  def create(param, users \\ []), do: Repo.insert(changeset(%__MODULE__{}, param, users))
 
-  def find(id), do:
-    Repo.one(from a in account_query(), where: a.id == ^id, preload: [:users])
+  def find(id), do: Repo.one(from(a in account_query(), where: a.id == ^id, preload: [:users]))
 
-  def find_by_name(name), do:
-    Repo.one(from a in account_query(), where: a.name == ^name, preload: [:users])
+  def find_by_name(name),
+    do: Repo.one(from(a in account_query(), where: a.name == ^name, preload: [:users]))
 
   def update(id, param) do
     case find(id) do
-      nil     -> nil
-      account -> Repo.update(changeset account, param)
+      nil -> nil
+      account -> Repo.update(changeset(account, param))
     end
   end
 
-  def delete(id), do:
-    (account = find id) && Repo.update(changeset account, %{deleted_at: NaiveDateTime.utc_now})
+  def delete(id),
+    do:
+      (account = find(id)) &&
+        Repo.update(changeset(account, %{deleted_at: NaiveDateTime.utc_now()}))
 
-  defp account_query, do:
-    from a in __MODULE__, where: is_nil(a.deleted_at), order_by: [asc: a.id]
+  defp account_query,
+    do: from(a in __MODULE__, where: is_nil(a.deleted_at), order_by: [asc: a.id])
 end

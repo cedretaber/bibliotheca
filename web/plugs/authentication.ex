@@ -5,10 +5,11 @@ defmodule Bibliotheca.Plugs.Authentication do
 
   def realm, do: @realm
 
-  def unauthenticated(conn, _param), do:
-    conn
-    |> send_resp(401, "Unauthorized")
-    |> halt()
+  def unauthenticated(conn, _param),
+    do:
+      conn
+      |> send_resp(401, "Unauthorized")
+      |> halt()
 
   def current_user(conn), do: Guardian.Plug.current_resource(conn)
 

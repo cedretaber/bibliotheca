@@ -13,10 +13,11 @@ defmodule Bibliotheca.Api.AuthenticationController do
     case Repo.get_by(User, email: email) do
       nil ->
         login(conn, nil)
+
       user ->
         if HMAC.verify_password(user.password_digest, password) do
-          conn   = Guardian.Plug.api_sign_in conn, user
-          jwt    = Guardian.Plug.current_token conn
+          conn = Guardian.Plug.api_sign_in(conn, user)
+          jwt = Guardian.Plug.current_token(conn)
 
           conn
           |> put_resp_header(header(), "#{realm()} #{jwt}")
@@ -27,5 +28,5 @@ defmodule Bibliotheca.Api.AuthenticationController do
     end
   end
 
-  def login(conn, _param) , do: send_resp(conn, 401, "")
+  def login(conn, _param), do: send_resp(conn, 401, "")
 end
