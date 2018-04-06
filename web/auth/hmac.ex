@@ -1,5 +1,5 @@
 defmodule Bibliotheca.Auth.HMAC do
-  # credo:disable-for-lines:3 Credo.Check.Refactor.PipeChainStart
+  # credo:disable-for-lines:4 Credo.Check.Refactor.PipeChainStart
   def hexdigest(data),
     do:
       :crypto.hmac(:sha256, Application.get_env(:bibliotheca, :hmac_key), data)
